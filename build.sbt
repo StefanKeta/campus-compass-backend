@@ -8,6 +8,7 @@ val circeV = "0.14.5"
 val http4sV = "0.23.18"
 val log4catsV = "2.5.0"
 val logbackV = "1.4.6"
+val mongoDriverV = "4.9.0"
 val pureconfigV = "0.17.2"
 val tapirV = "1.2.10"
 
@@ -30,7 +31,8 @@ lazy val core = (project in file(
   name := "core",
   libraryDependencies ++= baseDependencies ++ Seq(
     "com.github.pureconfig" %% "pureconfig-core" % pureconfigV,
-    "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigV
+    "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigV,
+    "org.mongodb.scala" % "mongo-scala-driver_2.13" % mongoDriverV
   )
 )
 

@@ -3,6 +3,7 @@ import cats.implicits.*
 import com.comcast.ip4s.*
 import config.ConfigLoader
 import config.domain.ServerConfiguration
+import db.DbInitializer
 import org.http4s.*
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.server.EmberServerBuilder
@@ -28,6 +29,7 @@ object App extends IOApp.Simple {
   override def run: IO[Unit] = for {
     given Logger[IO] <- Slf4jLogger.create[IO]
     configs <- ConfigLoader[IO].load()
+    db <- DbInitializer[IO](configs.db).initDb()
     _ <- runServer(configs.server, new Routes[IO]).useForever
   } yield ()
 }
