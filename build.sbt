@@ -12,6 +12,8 @@ val mongoDriverV = "4.9.0"
 val pureconfigV = "0.17.2"
 val tapirV = "1.2.10"
 
+lazy val catsDependencies = Seq(
+)
 lazy val baseDependencies = Seq(
   "org.typelevel" %% "cats-effect" % catsEffectV,
   "org.typelevel" %% "cats-core" % catsV,
@@ -23,12 +25,12 @@ lazy val root = (project in file("."))
   .settings(
     name := "backend"
   )
-  .aggregate(core, routes, server)
+  .aggregate(config,routes,globalServer)
 
-lazy val core = (project in file(
-  "./core"
+lazy val config = (project in file(
+  "./common/config"
 )).settings(
-  name := "core",
+  name := "config",
   libraryDependencies ++= baseDependencies ++ Seq(
     "com.github.pureconfig" %% "pureconfig-core" % pureconfigV,
     "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigV,
@@ -36,7 +38,7 @@ lazy val core = (project in file(
   )
 )
 
-lazy val routes = (project in file("./routes"))
+lazy val routes = (project in file("./apps/global/routes"))
   .settings(
     name := "routes",
     libraryDependencies ++= baseDependencies ++ Seq(
@@ -46,7 +48,7 @@ lazy val routes = (project in file("./routes"))
     )
   )
 
-lazy val server = (project in file("./server"))
+lazy val globalServer = (project in file("./apps/global/server"))
   .settings(
     name := "server",
     libraryDependencies ++= baseDependencies ++ Seq(
@@ -54,4 +56,4 @@ lazy val server = (project in file("./server"))
       "org.http4s" %% "http4s-dsl" % http4sV
     )
   )
-  .dependsOn(core, routes)
+  .dependsOn(config, routes)
