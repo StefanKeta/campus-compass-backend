@@ -1,24 +1,30 @@
 package routes.admin
 
 import adminAlgebra.AdminAlgebra
-import cats.effect.kernel.Async
-import cats.{Applicative, MonadError}
+import cats.effect.Async
 import cats.implicits.*
 import config.domain.AdminConfiguration
 import dao.UniversityDAO
-import domain.Entity.*
+import domain.user.Entity.*
 import error.AdminError
 import endpoints.admin.AdminEndpoints
 import error.AdminError.Unauthorized
+import routes.Routes
+import sttp.tapir.Endpoint
 import sttp.tapir.model.UsernamePassword
 import sttp.tapir.server.ServerEndpoint.Full
- 
-class AdminRoutes[F[_]](adminConfiguration: AdminConfiguration,adminAlgebra: AdminAlgebra[F])(using F: Async[F]) {
+
+import scala.reflect.ClassTag
+
+class AdminRoutes[F[_]](adminConfiguration: AdminConfiguration,adminAlgebra: AdminAlgebra[F])(using F: Async[F]) extends Routes[F]{
   import AdminEndpoints._
-  
+
+  private val confirmExistence = handleAuthentication(confirmExistenceEndpoint).serverLogicRecoverErrors(admin => universityId => adminAlgebra.confirmExistence(admin, universityId))
+
   private val listUniversities: Full[UsernamePassword, Admin, Unit, AdminError, List[UniversityDAO], Any, F] =
-    listUniversitiesEndpoint.serverSecurityLogicRecoverErrors(authenticateAdmin(_, adminConfiguration))
-      .serverLogicRecoverErrors(_ => _ => adminAlgebra.getUniversities())
+    handleAuthentication(listUniversitiesEndpoint).serverLogicRecoverErrors(_ => _ => adminAlgebra.getUniversities())
+
+  private def handleAuthentication[S<:UsernamePassword,I,E<:Throwable,O](endpoint: Endpoint[S,I,E,O,Any])(using classTag: ClassTag[E])= endpoint.serverSecurityLogicRecoverErrors(authenticateAdmin(_,adminConfiguration))
   
   private def authenticateAdmin(
       usernamePassword: UsernamePassword,
@@ -34,10 +40,8 @@ class AdminRoutes[F[_]](adminConfiguration: AdminConfiguration,adminAlgebra: Adm
     adminConfiguration.password == usernamePassword.password.getOrElse(
       ""
     ) && adminConfiguration.username == usernamePassword.username
-
-    
   
-  val routes = List(listUniversities)
+  val routes = Async[F].delay(List(listUniversities,confirmExistence))
 }
 
 object AdminRoutes{

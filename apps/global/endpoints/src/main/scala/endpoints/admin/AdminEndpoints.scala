@@ -10,11 +10,18 @@ import sttp.tapir.model.*
 import io.circe.generic.auto.*
 import mongo4cats.circe.*
 import sttp.model.StatusCode
+
+import java.util.UUID
 object AdminEndpoints {
-  private val baseAdminEndpoint = endpoint.securityIn(auth.basic[UsernamePassword]()).in("api"/"v1"/ "admin").tag("Global admin")
+  private val ADMIN_TAG = "Global admin"
+  private val baseAdminEndpoint = endpoint
+    .securityIn(auth.basic[UsernamePassword]())
+    .in("api" / "v1" / "admin")
+    .tag(ADMIN_TAG)
+
   val listUniversitiesEndpoint
       : Endpoint[UsernamePassword, Unit, AdminError, List[UniversityDAO], Any] =
-    baseAdminEndpoint
+    baseAdminEndpoint.get
       .in("list-universities")
       .out(jsonBody[List[UniversityDAO]])
       .errorOut(
@@ -28,4 +35,24 @@ object AdminEndpoints {
         )
       )
 
+  val confirmExistenceEndpoint
+      : Endpoint[UsernamePassword, UUID, AdminError, Unit, Any] =
+    baseAdminEndpoint.post
+      .in("confirm" / path[UUID])
+      .errorOut(
+        oneOf[AdminError](
+          oneOfVariant(
+            statusCode(StatusCode.Unauthorized).and(jsonBody[Unauthorized])
+          ),
+          oneOfVariant(
+            statusCode(StatusCode.BadRequest).and(jsonBody[UniversityNotFound])
+          ),
+          oneOfVariant(
+            statusCode(StatusCode.BadRequest)
+              .and(jsonBody[UniversityAlreadyConfirmed])
+          )
+        )
+      )
+
+  val adminEndpoints = List(listUniversitiesEndpoint, confirmExistenceEndpoint)
 }

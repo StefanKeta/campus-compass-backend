@@ -1,4 +1,6 @@
 package error
 
 enum AdminError extends Throwable:
-  case Unauthorized(caused:String)
+  case Unauthorized(cause:String)
+  case UniversityNotFound(cause:String)
+  case UniversityAlreadyConfirmed(cause:String)

@@ -6,21 +6,23 @@ val catsV = "2.9.0"
 val catsEffectV = "3.4.8"
 val circeV = "0.14.5"
 val http4sV = "0.23.18"
+val javaxMailV = "1.6.2"
 val log4catsV = "2.5.0"
 val logbackV = "1.4.6"
 val mongo4catsV = "0.6.10"
 val pureconfigV = "0.17.2"
+val redis4catsV = "1.4.1"
 val tapirV = "1.2.10"
+val tsecV = "0.4.0"
 
-lazy val catsDependencies = Seq(
-)
 lazy val baseDependencies = Seq(
   "org.typelevel" %% "cats-effect" % catsEffectV,
   "org.typelevel" %% "cats-core" % catsV,
   "org.typelevel" %% "log4cats-slf4j" % log4catsV,
   "ch.qos.logback" % "logback-classic" % logbackV,
+  "dev.profunktor" %% "redis4cats-effects" % redis4catsV,
   "io.github.kirill5k" %% "mongo4cats-core" % mongo4catsV,
-  "io.github.kirill5k" %% "mongo4cats-circe" % mongo4catsV
+  "io.github.kirill5k" %% "mongo4cats-circe" % mongo4catsV,
 )
 
 lazy val root = (project in file("."))
@@ -39,18 +41,46 @@ lazy val config = (project in file(
   )
 )
 
+lazy val crypto = (project in file(
+  "./common/crypto"
+))
+  .settings(
+    name := "crypto",
+    libraryDependencies ++= baseDependencies ++ Seq(
+      "io.github.jmcardon" %% "tsec-common" % tsecV,
+      "io.github.jmcardon" %% "tsec-password" % tsecV,
+      "io.github.jmcardon" %% "tsec-jwt-mac" % tsecV,
+    )
+  )
+
+lazy val email = (project in file("./common/email"))
+  .settings(
+    name := "email",
+    libraryDependencies ++= baseDependencies ++ Seq(
+      "com.sun.mail" % "javax.mail" % javaxMailV withSources ()
+    )
+  )
+  .dependsOn(config)
+
 lazy val globalAdminAlgebra = (project in file("apps/global/algebra/admin"))
   .settings(
     name := "admin",
     libraryDependencies ++= baseDependencies
   )
-  .dependsOn(config, globalDomain,globalStorage)
+  .dependsOn(config, crypto, email, globalDomain, globalStorage)
+
+lazy val globalAuthAlgebra = (project in file("./apps/global/algebra/auth"))
+  .settings(
+    name := "authentication",
+    libraryDependencies ++= baseDependencies
+  )
+  .dependsOn(config, crypto, globalStorage)
 
 lazy val globalDomain = (project in file("./apps/global/domain"))
   .settings(
     name := "domain",
     libraryDependencies ++= Seq(
-      "io.github.kirill5k" %% "mongo4cats-core" % mongo4catsV
+      "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirV
     )
   )
 
@@ -62,7 +92,7 @@ lazy val globalEndpoints = (project in file("./apps/global/endpoints"))
       "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirV
     )
   )
-  .dependsOn(globalDomain,globalStorage)
+  .dependsOn(globalDomain, globalStorage)
 
 lazy val globalRoutes = (project in file("./apps/global/routes"))
   .settings(
@@ -74,7 +104,16 @@ lazy val globalRoutes = (project in file("./apps/global/routes"))
       "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % tapirV
     )
   )
-  .dependsOn(config, globalEndpoints, globalDomain, globalAdminAlgebra,globalStorage)
+  .dependsOn(
+    config,
+    globalAdminAlgebra,
+    globalAuthAlgebra,
+    globalDomain,
+    globalEndpoints,
+    globalStorage,
+    globalStudentAlgebra,
+    globalUniversityAlgebra,
+  )
 
 lazy val globalServer = (project in file("./apps/global/server"))
   .settings(
@@ -84,7 +123,14 @@ lazy val globalServer = (project in file("./apps/global/server"))
       "org.http4s" %% "http4s-dsl" % http4sV
     )
   )
-  .dependsOn(config, globalRoutes, globalAdminAlgebra)
+  .dependsOn(
+    config,
+    crypto,
+    email,
+    globalRoutes,
+    globalAdminAlgebra,
+    globalAuthAlgebra
+  )
 
 lazy val globalStorage = (project in file("./apps/global/storage"))
   .settings(
@@ -92,3 +138,17 @@ lazy val globalStorage = (project in file("./apps/global/storage"))
     libraryDependencies ++= baseDependencies
   )
   .dependsOn(globalDomain)
+
+lazy val globalStudentAlgebra = (project in file("./apps/global/algebra/student"))
+  .settings(
+    name := "student",
+    libraryDependencies ++= baseDependencies
+  )
+  .dependsOn(config,crypto,email,globalDomain,globalStorage)
+
+lazy val globalUniversityAlgebra = (project in file("./apps/global/algebra/university"))
+  .settings(
+    name := "university",
+    libraryDependencies ++= baseDependencies
+  )
+  .dependsOn(config,crypto,globalDomain,globalStorage)

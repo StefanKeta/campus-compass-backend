@@ -1,8 +1,8 @@
-package domain
+package domain.user
 
 import domain.Coordinates
-import java.util.UUID
 
 enum Entity:
   case Admin()
   case University(name:String,contactPerson:String,email:String,coordinates:Coordinates)
+  case Student(firstName:String,lastName:String,email:String)
