@@ -35,6 +35,3 @@ classes/
 .vscode
 .metals
 .bloop
-
-#config files
-*.conf
