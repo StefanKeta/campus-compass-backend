@@ -2,7 +2,7 @@ package ro.campuscompass.global.httpserver.api.endpoint
 
 import io.circe.generic.auto.*
 import ro.campuscompass.global.domain.error.AdminError
-import ro.campuscompass.global.httpserver.api.model.UniversityAdminDTO
+import ro.campuscompass.global.httpserver.api.model.{ AuthToken, UniversityAdminDTO }
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -17,15 +17,16 @@ object AdminEndpoints {
 
   def apply(): List[AnyEndpoint] = List(
     listUniversitiesEndpoint,
-    confirmExistenceEndpoint
+    confirmExistenceEndpoint,
+    rejectUniversityEndpoint
   )
 
   private val baseAdminEndpoint = endpoint
-    .securityIn(auth.basic[UsernamePassword]())
+    .securityIn(auth.bearer[AuthToken]())
     .in("api" / "v1" / "admin")
     .tag(ADMIN_TAG)
 
-  val listUniversitiesEndpoint: Endpoint[UsernamePassword, Unit, AdminError, List[UniversityAdminDTO], Any] =
+  val listUniversitiesEndpoint: Endpoint[AuthToken, Unit, AdminError, List[UniversityAdminDTO], Any] =
     baseAdminEndpoint.get
       .in("list-universities")
       .out(jsonBody[List[UniversityAdminDTO]])
@@ -40,7 +41,7 @@ object AdminEndpoints {
         )
       )
 
-  val confirmExistenceEndpoint: Endpoint[UsernamePassword, UUID, AdminError, Unit, Any] =
+  val confirmExistenceEndpoint: Endpoint[AuthToken, UUID, AdminError, Unit, Any] =
     baseAdminEndpoint.post
       .in("confirm" / path[UUID])
       .errorOut(
@@ -57,4 +58,22 @@ object AdminEndpoints {
           )
         )
       )
+
+  val rejectUniversityEndpoint: Endpoint[AuthToken, UUID, AdminError, Unit, Any] = baseAdminEndpoint.post
+    .in("reject" / path[UUID])
+    .errorOut(
+      oneOf[AdminError](
+        oneOfVariant(
+          statusCode(StatusCode.Unauthorized).and(jsonBody[AdminError.Unauthorized])
+        ),
+        oneOfVariant(
+          statusCode(StatusCode.BadRequest).and(jsonBody[AdminError.UniversityNotFound])
+        ),
+        oneOfVariant(
+          statusCode(StatusCode.BadRequest)
+            .and(jsonBody[AdminError.UniversityAlreadyConfirmed])
+        )
+      )
+    )
+    .out(emptyOutput)
 }

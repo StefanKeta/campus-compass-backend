@@ -10,6 +10,7 @@ import ro.campuscompass.common.mongo.MongoDBClient
 import ro.campuscompass.common.redis.RedisClient
 import ro.campuscompass.global.algebra.admin.AdminAlgebra
 import ro.campuscompass.global.algebra.auth.AuthAlgebra
+import ro.campuscompass.global.algebra.student.StudentAlgebra
 import ro.campuscompass.global.algebra.university.UniversityAlgebra
 import ro.campuscompass.global.httpserver.GlobalServer
 import ro.campuscompass.global.persistence.*
@@ -24,20 +25,22 @@ object GlobalApp extends Logging {
     mongoDb       <- Resource.eval(mongoClient.getDatabase(config.mongo.database))
     redisCommands <- RedisClient(config.redis)
 
-    userRepository       <- Resource.pure(UserRepository[F](mongoDb))
-    universityRepository <- Resource.pure(UniversityRepository[F](mongoDb))
-    // studentApplicationRepository <- StudentApplicationRepository[F](db)
+    userRepository               <- Resource.pure(UserRepository[F](mongoDb))
+    universityRepository         <- Resource.pure(UniversityRepository[F](mongoDb))
+    studentApplicationRepository <- Resource.pure(StudentApplicationRepository[F](mongoDb))
 
     emailAlgebra <- Resource.eval(SMTPEmailInterpreter[F](config.email))
 
-    adminAlgebra      <- Resource.eval(AdminAlgebra[F](userRepository, universityRepository, emailAlgebra))
+    adminAlgebra      <- Resource.pure(AdminAlgebra[F](userRepository, universityRepository, emailAlgebra))
     authAlgebra       <- Resource.pure(AuthAlgebra[F](userRepository, redisCommands, config.jwt))
     universityAlgebra <- Resource.pure(UniversityAlgebra[F](universityRepository))
+    studentAlgebra    <- Resource.pure(StudentAlgebra[F](studentApplicationRepository, universityRepository))
 
-    server <- GlobalServer.start(config.server, config.admin)(
+    server <- GlobalServer.start(config.server)(
       adminAlgebra,
       authAlgebra,
-      universityAlgebra
+      universityAlgebra,
+      studentAlgebra
     )
 
     _ <- logger[Resource[F, *]].info(s"Started server: $server")

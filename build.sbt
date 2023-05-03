@@ -17,6 +17,7 @@ lazy val allProjects = List(
   commonBaseHttp,
   commonBaseLogging,
   commonBaseType,
+  commonBaseTime,
   commonMongo,
   commonRedis,
   commonEmail,
@@ -26,7 +27,7 @@ lazy val allProjects = List(
   globalDomain,
   globalAuthAlgebra,
   globalAdminAlgebra,
-//  globalStudentAlgebra,
+  globalStudentAlgebra,
   globalUniversityAlgebra,
   globalPersistence
 )
@@ -94,14 +95,16 @@ lazy val commonBase =
       commonBaseEffect,
       commonBaseLogging,
       commonBaseType,
-      commonBaseHttp
+      commonBaseHttp,
+      commonBaseTime
     )
     .aggregate(
       commonBaseCrypto,
       commonBaseEffect,
       commonBaseLogging,
       commonBaseType,
-      commonBaseHttp
+      commonBaseHttp,
+      commonBaseTime
     )
 
 lazy val commonBaseCrypto =
@@ -149,6 +152,10 @@ lazy val commonBaseHttp =
         Dependencies.http4sEmber
       )
     )
+
+
+lazy val commonBaseTime =
+  commonBaseModule("time")
 
 // * ------------------------------------------------------- *
 // * ------------------------------------------------------- *
@@ -209,6 +216,7 @@ lazy val globalHttpServer =
     .dependsOn(globalDomain)
     .dependsOn(globalAdminAlgebra)
     .dependsOn(globalAuthAlgebra)
+    .dependsOn(globalStudentAlgebra)
     .dependsOn(globalUniversityAlgebra)
 
 lazy val globalDomain =
@@ -228,9 +236,9 @@ lazy val globalAuthAlgebra =
   globalAlgebraModule("auth")
     .dependsOn(commonRedis)
 
-//lazy val globalStudentAlgebra =
-//  globalAlgebraModule("student")
-//    .dependsOn(commonEmail)
+lazy val globalStudentAlgebra =
+  globalAlgebraModule("student")
+    .dependsOn(commonEmail)
 
 lazy val globalUniversityAlgebra =
   globalAlgebraModule("university")

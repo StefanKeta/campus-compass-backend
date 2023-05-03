@@ -17,8 +17,8 @@ object JwtUtils {
     jwtString <- JWTMac.buildToString[F, HMACSHA256](claims, key)
   } yield JWT(jwtString)
 
-  def verifyAndParseJwt[F[_]: Sync](jwt: String, jwtConfig: JwtConfig): F[JWTMac[HMACSHA256]] = for {
+  def verifyAndParseJwt[F[_]: Sync](jwt: JWT, jwtConfig: JwtConfig): F[JWTMac[HMACSHA256]] = for {
     key    <- HMACSHA256.buildKey[F](jwtConfig.sha256Key.getBytes)
-    jwtMac <- JWTMac.verifyAndParse[F, HMACSHA256](jwt, key)
+    jwtMac <- JWTMac.verifyAndParse[F, HMACSHA256](jwt.value, key)
   } yield jwtMac
 }

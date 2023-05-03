@@ -11,6 +11,7 @@ import ro.campuscompass.common.http.ServerConfig
 import ro.campuscompass.common.logging.*
 import ro.campuscompass.global.algebra.admin.{ AdminAlgebra, AdminConfig }
 import ro.campuscompass.global.algebra.auth.AuthAlgebra
+import ro.campuscompass.global.algebra.student.StudentAlgebra
 import ro.campuscompass.global.algebra.university.UniversityAlgebra
 
 class GlobalServer[F[_]: Async](
@@ -42,19 +43,20 @@ class GlobalServer[F[_]: Async](
 
 object GlobalServer {
   def start[F[_]: Async](
-    serverConfig: ServerConfig,
-    adminConfig: AdminConfig
+    serverConfig: ServerConfig
   )(
     adminAlgebra: AdminAlgebra[F],
     authAlgebra: AuthAlgebra[F],
-    universityAlgebra: UniversityAlgebra[F]
+    universityAlgebra: UniversityAlgebra[F],
+    studentAlgebra: StudentAlgebra[F]
   ): Resource[F, Server] =
     new GlobalServer(
       serverConfig,
-      GlobalServerRoutes[F](adminConfig)(
+      GlobalServerRoutes[F](
         adminAlgebra,
         authAlgebra,
-        universityAlgebra
+        universityAlgebra,
+        studentAlgebra
       )
     ).startServer
 }

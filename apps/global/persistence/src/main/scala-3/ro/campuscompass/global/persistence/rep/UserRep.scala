@@ -6,10 +6,11 @@ import mongo4cats.codecs.MongoCodecProvider
 import ro.campuscompass.common.domain.Role
 import ro.campuscompass.global.domain.User
 
+import java.time.Instant
 import java.util.UUID
 
-final case class UserRep(_id: UUID, username: String, password: String, role: Role) {
-  def domain: User = User(_id, username, password, role)
+final case class UserRep(_id: UUID, username: String, password: String, role: Role,registrationDate:Instant) {
+  def domain: User = User(_id, username, password, role,registrationDate)
 }
 
 object UserRep {
@@ -19,6 +20,7 @@ object UserRep {
     user._id,
     user.username,
     user.password,
-    user.role
+    user.role,
+    user.registrationDate
   )
 }

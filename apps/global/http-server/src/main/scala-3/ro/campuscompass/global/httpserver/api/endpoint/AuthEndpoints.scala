@@ -2,7 +2,8 @@ package ro.campuscompass.global.httpserver.api.endpoint
 
 import io.circe.generic.auto.*
 import ro.campuscompass.global.domain.error.AuthError
-import ro.campuscompass.global.httpserver.api.model.{ AuthToken, LoginDTO }
+import ro.campuscompass.global.domain.error.AuthError.StudentAlreadyEnrolled
+import ro.campuscompass.global.httpserver.api.model.{AuthToken, LoginDTO, RegisterDTO}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -12,7 +13,7 @@ import sttp.tapir.server.ServerEndpoint
 object AuthEndpoints {
   private val GLOBAL_AUTHORIZATION_TAG = "Global authorization"
 
-  def apply(): List[AnyEndpoint] = List(loginEndpoint)
+  def apply(): List[AnyEndpoint] = List(loginEndpoint,registerEndpoint)
 
   val loginEndpoint: Endpoint[Unit, LoginDTO, AuthError, AuthToken, Any] = endpoint.post
     .in("api" / "v1" / "login")
@@ -27,4 +28,16 @@ object AuthEndpoints {
     )
     .tag(GLOBAL_AUTHORIZATION_TAG)
 
+  val registerEndpoint: Endpoint[Unit, RegisterDTO, AuthError, AuthToken, Any] = endpoint.post
+    .in("api" / "v1" / "register")
+    .in(jsonBody[RegisterDTO])
+    .out(jsonBody[AuthToken])
+    .errorOut(
+      oneOf[AuthError](
+        oneOfVariant(
+          statusCode(StatusCode.BadRequest).and(jsonBody[StudentAlreadyEnrolled])
+        )
+      )
+    )
+    .tag(GLOBAL_AUTHORIZATION_TAG)
 }

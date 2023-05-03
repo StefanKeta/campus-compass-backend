@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.implicits.*
 import com.mongodb.client.model.Filters
 import mongo4cats.database.MongoDatabase
-import mongo4cats.operations.{Filter, Update}
+import mongo4cats.operations.{ Filter, Update }
 import ro.campuscompass.global.domain.University
 import ro.campuscompass.global.persistence.rep.UniversityRep
 
@@ -17,9 +17,13 @@ trait UniversityRepository[F[_]] {
 
   def findAll(): F[List[University]]
 
+  def findByIds(ids: List[UUID]): F[List[University]]
+
   def updateUserId(_id: UUID, userId: UUID): F[Unit]
 
   def isConfirmed(_id: UUID): F[Option[Boolean]]
+
+  def delete(_id: UUID): F[Unit]
 }
 
 object UniversityRepository {
@@ -40,4 +44,10 @@ object UniversityRepository {
 
     override def isConfirmed(_id: UUID): F[Option[Boolean]] =
       docs.flatMap(_.find(Filters.eq("_id", _id)).first.map(_.map(_.userId.isDefined)))
+
+    override def findByIds(ids: List[UUID]): F[List[University]] =
+      docs.flatMap(_.find(Filter.in[UUID]("_id", ids)).all).map(_.toList.map(_.domain))
+
+    override def delete(_id: UUID): F[Unit] =
+      docs.flatMap(_.deleteOne(Filter.eq[UUID]("_id", _id)).void)
 }
