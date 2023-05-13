@@ -1,4 +1,4 @@
-package ro.campuscompass.global.httpserver.route
+package ro.campuscompass.common.http
 
 import sttp.tapir.AnyEndpoint
 import sttp.tapir.server.ServerEndpoint

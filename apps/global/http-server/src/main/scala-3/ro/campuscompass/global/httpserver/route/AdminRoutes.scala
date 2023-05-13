@@ -4,8 +4,9 @@ import cats.*
 import cats.effect.Async
 import cats.implicits.*
 import ro.campuscompass.common.crypto.JWT
-import ro.campuscompass.common.domain.{ Principal, Role }
-import ro.campuscompass.global.algebra.admin.{ AdminAlgebra, AdminConfig }
+import ro.campuscompass.common.domain.{Principal, Role}
+import ro.campuscompass.common.http.Routes
+import ro.campuscompass.global.algebra.admin.{AdminAlgebra, AdminConfig}
 import ro.campuscompass.global.algebra.auth.AuthAlgebra
 import ro.campuscompass.global.domain.error.AdminError
 import ro.campuscompass.global.httpserver.api.endpoint.AdminEndpoints
@@ -13,7 +14,7 @@ import ro.campuscompass.global.httpserver.api.endpoint.AdminEndpoints.*
 import ro.campuscompass.global.httpserver.api.model.UniversityAdminDTO
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.ServerEndpoint.Full
-import sttp.tapir.{ AnyEndpoint, Endpoint }
+import sttp.tapir.{AnyEndpoint, Endpoint}
 
 import scala.reflect.ClassTag
 

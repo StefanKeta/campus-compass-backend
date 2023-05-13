@@ -22,6 +22,8 @@ lazy val allProjects = List(
   commonRedis,
   commonEmail,
   commonDomain,
+  commonMinio,
+  // GLOBAL
   globalMain,
   globalHttpServer,
   globalDomain,
@@ -29,7 +31,13 @@ lazy val allProjects = List(
   globalAdminAlgebra,
   globalStudentAlgebra,
   globalUniversityAlgebra,
-  globalPersistence
+  globalPersistence,
+  // REGIONAL,
+  regionalMain,
+  regionalHttpServer,
+  regionalDomain,
+  regionalAuthorizationAlgebra,
+  regionalPersistence,
 )
 
 def campusCompassModule(path: List[String], baseDir: Option[String] = None): Project = {
@@ -153,7 +161,6 @@ lazy val commonBaseHttp =
       )
     )
 
-
 lazy val commonBaseTime =
   commonBaseModule("time")
 
@@ -189,6 +196,14 @@ lazy val commonEmail =
     .settings(
       libraryDependencies ++= Seq(
         Dependencies.javaxMail
+      )
+    )
+
+lazy val commonMinio =
+  commonModule("minio")
+    .settings(
+      libraryDependencies ++= Seq(
+        Dependencies.minio
       )
     )
 
@@ -249,4 +264,43 @@ lazy val globalPersistence =
     .dependsOn(globalDomain)
 
 addCommandAlias("runGlobal", "global-main/run")
+
+// * ------------------------------------------------------- *
+// * ------------------------------------------------------- *
+//     Regional Server Modules
+// * ------------------------------------------------------- *
+// * ------------------------------------------------------- *
+def regionalModule(path: String*): Project =
+  campusCompassModule("regional" :: path.toList, Some("apps"))
+    .dependsOn(commonBase)
+
+lazy val regionalMain =
+  regionalModule("main")
+    .dependsOn(regionalHttpServer)
+    .dependsOn(regionalPersistence)
+
+lazy val regionalHttpServer =
+  regionalModule("http-server")
+    .dependsOn(commonBaseHttp)
+    .dependsOn(regionalDomain)
+    .dependsOn(regionalAuthorizationAlgebra)
+
+lazy val regionalDomain =
+  regionalModule("domain")
+    .dependsOn(commonDomain)
+
+def regionalAlgebraModule(path: String*): Project =
+  regionalModule(("algebra" :: path.toList) *)
+    .dependsOn(regionalDomain)
+    .dependsOn(regionalPersistence)
+
+lazy val regionalAuthorizationAlgebra =
+  regionalAlgebraModule("authorization")
+    .dependsOn(commonRedis)
+
+lazy val regionalPersistence =
+  regionalModule("persistence")
+    .dependsOn(commonMongo)
+    .dependsOn(regionalDomain)
+
 addCommandAlias("runRegional", "regional-main/run")

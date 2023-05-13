@@ -1,4 +1,4 @@
-package ro.campuscompass.global.httpserver.api.model
+package ro.campuscompass.common.domain
 
 import ro.campuscompass.common.`type`.OpaqueTypeCompanion
 import sttp.tapir.Codec

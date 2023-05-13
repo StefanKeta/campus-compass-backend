@@ -6,3 +6,4 @@ enum Principal:
   case Admin
   case University(_id: UUID)
   case Student(_id: UUID)
+  case Global(apiKey: String)

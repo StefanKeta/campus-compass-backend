@@ -52,4 +52,7 @@ object Dependencies {
   lazy val sourcecode = ("com.lihaoyi" %% "sourcecode" % "0.3.0").withSources()
 
   lazy val apacheCommonsText = ("org.apache.commons" % "commons-text" % "1.10.0").withSources()
+
+  lazy val minio = ("io.minio" % "minio" % "8.5.2").withSources()
+
 }

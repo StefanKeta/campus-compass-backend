@@ -1,9 +1,10 @@
 package ro.campuscompass.global.httpserver.api.endpoint
 
 import io.circe.generic.auto.*
-import ro.campuscompass.global.domain.error.AuthError
-import ro.campuscompass.global.domain.error.AuthError.StudentAlreadyEnrolled
-import ro.campuscompass.global.httpserver.api.model.{AuthToken, LoginDTO, RegisterDTO}
+import ro.campuscompass.common.domain.AuthToken
+import ro.campuscompass.common.domain.error.AuthError
+import AuthError.StudentAlreadyEnrolled
+import ro.campuscompass.global.httpserver.api.model.{LoginDTO, RegisterDTO}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*

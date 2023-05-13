@@ -43,6 +43,6 @@ object GlobalApp extends Logging {
       studentAlgebra
     )
 
-    _ <- logger[Resource[F, *]].info(s"Started server: $server")
+    _ <- logger[Resource[F, *]].info(s"Started server: ${server.address}")
   } yield ()
 }

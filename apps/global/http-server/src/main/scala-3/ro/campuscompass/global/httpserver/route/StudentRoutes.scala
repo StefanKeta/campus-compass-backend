@@ -5,14 +5,11 @@ import cats.effect.std.UUIDGen
 import cats.implicits.*
 import ro.campuscompass.common.crypto.JWT
 import ro.campuscompass.common.domain.Role
+import ro.campuscompass.common.http.Routes
 import ro.campuscompass.global.algebra.auth.AuthAlgebra
 import ro.campuscompass.global.algebra.student.StudentAlgebra
 import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints
-import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints.{
-  applyForUniversityEndpoint,
-  listAppliedUniverstitiesEndpoint,
-  listUniversitiesEndpoint
-}
+import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints.{applyForUniversityEndpoint, listAppliedUniverstitiesEndpoint, listUniversitiesEndpoint}
 import ro.campuscompass.global.httpserver.api.model.StudentApplicationDTO
 import sttp.tapir.AnyEndpoint
 

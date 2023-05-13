@@ -3,6 +3,7 @@ package ro.campuscompass.global.httpserver.route
 import cats.effect.*
 import cats.effect.std.UUIDGen
 import cats.implicits.*
+import ro.campuscompass.common.http.Routes
 import ro.campuscompass.global.algebra.university.UniversityAlgebra
 import ro.campuscompass.global.domain.University
 import ro.campuscompass.global.httpserver.api.endpoint.UniversityEndpoints

@@ -1,9 +1,11 @@
 package ro.campuscompass.global.httpserver.api.endpoint
 
 import io.circe.generic.auto.*
+import ro.campuscompass.common.domain.AuthToken
+import ro.campuscompass.common.domain.error.AuthError
 import ro.campuscompass.global.domain.University
-import ro.campuscompass.global.domain.error.{ AuthError, StudentError }
-import ro.campuscompass.global.httpserver.api.model.{ AuthToken, StudentApplicationDTO }
+import ro.campuscompass.global.domain.error.StudentError
+import ro.campuscompass.global.httpserver.api.model.StudentApplicationDTO
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -27,7 +29,7 @@ object StudentEndpoints {
         ),
         oneOfVariant(
           statusCode(StatusCode.Forbidden)
-            .and(jsonBody[AuthError.UnauthorizedRole])
+            .and(jsonBody[AuthError.Unauthorized])
         ),
         oneOfVariant(
           statusCode(StatusCode.BadRequest)

@@ -1,8 +1,9 @@
 package ro.campuscompass.global.httpserver.api.endpoint
 
 import io.circe.generic.auto.*
+import ro.campuscompass.common.domain.AuthToken
 import ro.campuscompass.global.domain.error.AdminError
-import ro.campuscompass.global.httpserver.api.model.{ AuthToken, UniversityAdminDTO }
+import ro.campuscompass.global.httpserver.api.model.UniversityAdminDTO
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*

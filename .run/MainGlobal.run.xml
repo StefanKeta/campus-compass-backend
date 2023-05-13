@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Main" type="Application" factoryName="Application">
+  <configuration default="false" name="MainGlobal" type="Application" factoryName="Application">
     <envs>
       <env name="ADMIN_PASSWORD" value="admin" />
       <env name="ADMIN_USER" value="admin" />
@@ -13,7 +13,7 @@
     <module name="global-main" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="ro.campuscompass.global.*" />
+        <option name="PATTERN" value="ro.campuscompass.regional.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
