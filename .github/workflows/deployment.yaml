@@ -25,15 +25,24 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           git fetch --tags
-          latest_tag=$(git describe --tags --abbrev=0)
+          
+          latest_tag=$(git describe --tags --abbrev=0 --always)
+          
+          echo "Latest tag: $latest_tag"  
+          
           if [[ -z "$latest_tag" ]]; then
             new_version="v0.0.1"
           else
-            new_version=$(echo "$latest_tag" | awk -F. '{$NF=$NF+1;print $0}' | sed 's/ /./g' | sed 's/^/v/')
+            major=$(echo "$latest_tag" | cut -d. -f1 | sed 's/v//')
+            minor=$(echo "$latest_tag" | cut -d. -f2)
+            patch=$(echo "$latest_tag" | cut -d. -f3)
+            patch=$((patch+1))
+            new_version="v$major.$minor.$patch"
           fi
+          echo "New version: $new_version"
           git tag $new_version
-          git push origin $new_version
-          echo "NEW_VERSION=$($new_version)" >> "$GITHUB_OUTPUT"
+          git push --tags
+          echo "NEW_VERSION=$new_version" >> "$GITHUB_OUTPUT"
 
 
   build-docker-image:
@@ -110,3 +119,5 @@ jobs:
           git add .
           git commit -m "Update image ${{ vars.DOCKER_IMAGE_REGIONAL }} to version $NEW_VERSION"
           git push
+          
+          echo "Done"
