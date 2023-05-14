@@ -26,19 +26,14 @@ jobs:
           git config --global user.name "GitHub Action"
           git fetch --tags
           
-          latest_tag=$(git describe --tags --abbrev=0 --always)
+          latest_sha=$(git rev-list --tags --max-count=1)
+          latest_version=$(git describe --tags $latest_sha)
           
-          echo "Latest tag: $latest_tag"  
+          echo "Latest SHA: $latest_sha"
+          echo "Latest version: $latest_version"
           
-          if [[ -z "$latest_tag" ]]; then
-            new_version="v0.0.1"
-          else
-            major=$(echo "$latest_tag" | cut -d. -f1 | sed 's/v//')
-            minor=$(echo "$latest_tag" | cut -d. -f2)
-            patch=$(echo "$latest_tag" | cut -d. -f3)
-            patch=$((patch+1))
-            new_version="v$major.$minor.$patch"
-          fi
+          new_version=$(echo "$latest_version" | awk -F. '{$NF+=1; OFS=".";; gsub(/ /,"."); print $0}')
+          
           echo "New version: $new_version"
           git tag $new_version
           git push --tags
