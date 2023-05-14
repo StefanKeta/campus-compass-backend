@@ -6,7 +6,8 @@ import cats.implicits.*
 import org.http4s.HttpRoutes
 import ro.campuscompass.common.http.Routes
 import ro.campuscompass.regional.algebra.authorization.AuthorizationAlgebra
-import ro.campuscompass.regional.httpserver.route.AuthorizationRoutes
+import ro.campuscompass.regional.algebra.university.UniversityAlgebra
+import ro.campuscompass.regional.httpserver.route.{ GlobalRoutes, UniversityRoutes }
 import sttp.tapir.AnyEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
@@ -29,11 +30,13 @@ class RegionalServerRoutes[F[_]: Async](routes: List[Routes[F]]) {
 object RegionalServerRoutes {
   def apply[F[_]: Async](
     authAlgebra: AuthorizationAlgebra[F],
+    universityAlgebra: UniversityAlgebra[F],
     regionalApiKey: String,
   ): RegionalServerRoutes[F] =
     new RegionalServerRoutes(
       List(
-        AuthorizationRoutes(authAlgebra, regionalApiKey)
+        GlobalRoutes(authAlgebra, universityAlgebra, regionalApiKey),
+        UniversityRoutes(authAlgebra, universityAlgebra)
       )
     )
 }

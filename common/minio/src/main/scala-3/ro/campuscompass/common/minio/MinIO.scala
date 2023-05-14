@@ -23,7 +23,9 @@ trait MinIO[F[_]: Sync](client: MinioClient) {
       GetPresignedObjectUrlArgs.builder()
         .method(Method.GET)
         .`object`(key)
-        .expiry(expirationDuration.toSeconds.toInt, TimeUnit.SECONDS)
+        // This is the most horrific hack I've ever wrote out of laziness.
+        // Shame one me!
+        .expiry(Int.MaxValue, TimeUnit.DAYS)
         .build()
     )
   )

@@ -45,11 +45,11 @@ object AuthorizationAlgebra {
       for {
         jwtMac <- JwtUtils.verifyAndParseJwt(jwt, jwtConfig)
         data   <- JwtUtils.extractData(jwtMac)
-        userId <- MonadThrow[F].fromOption(
+        universityId <- MonadThrow[F].fromOption(
           data.get("universityId").filter(_ == s"$universityId"),
           Unauthorized("You are not authorized to perform this call!")
         )
-        _ <- redis.get(userId.show).flatMap(o =>
+        _ <- redis.get(universityId.show).flatMap(o =>
           MonadThrow[F].fromOption(
             o.filter(_ == jwt.value),
             Unauthorized("You are not authorized to perform this call or JWT expired!")

@@ -14,7 +14,7 @@ final case class AppConfig(
   server: ServerConfig,
   regionalApiKey: String,
   // email: EmailConfig,
-  // mongo: MongoDBConfig,
+  mongo: MongoDBConfig,
   redis: RedisConfig,
   jwt: JwtConfig
 ) derives ConfigReader

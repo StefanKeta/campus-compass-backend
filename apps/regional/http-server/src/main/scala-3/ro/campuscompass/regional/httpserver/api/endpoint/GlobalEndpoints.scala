@@ -2,6 +2,7 @@ package ro.campuscompass.regional.httpserver.api.endpoint
 
 import io.circe.generic.auto.*
 import ro.campuscompass.common.domain.AuthToken
+import ro.campuscompass.common.domain.error.GenericError
 import ro.campuscompass.regional.domain.*
 import ro.campuscompass.regional.httpserver.api.model.*
 import sttp.model.StatusCode
@@ -11,10 +12,10 @@ import sttp.tapir.json.circe.*
 import sttp.tapir.model.*
 import sttp.tapir.server.ServerEndpoint
 
-object AuthorizationEndpoints {
-  private val REGIONAL_AUTHORIZATION_TAG = "Regional authorization"
+object GlobalEndpoints {
+  private val REGIONAL_AUTHORIZATION_TAG = "Regional-global interactiong endpoints"
 
-  def apply(): List[AnyEndpoint] = List(authorizeUniversity, authorizeStudent)
+  def apply(): List[AnyEndpoint] = List(authorizeUniversity, authorizeStudent, listPrograms)
 
   val authorizeUniversity: Endpoint[String, AuthorizeUniversityDTO, AuthError.AuthUniversityError, AuthToken, Any] =
     endpoint
@@ -48,4 +49,19 @@ object AuthorizationEndpoints {
       )
       .tag(REGIONAL_AUTHORIZATION_TAG)
 
+
+  val listPrograms: Endpoint[String, Unit, GenericError, List[StudyProgramDTO], Any] =
+    endpoint
+      .get
+      .securityIn(auth.apiKey[String](header("X-Regional-Api-Key")))
+      .securityIn("api" / "v1" / "program")
+      .out(jsonBody[List[StudyProgramDTO]])
+      .errorOut(
+        oneOf[GenericError](
+          oneOfVariant(
+            statusCode(StatusCode.InternalServerError).and(jsonBody[GenericError])
+          )
+        )
+      )
+      .tag(REGIONAL_AUTHORIZATION_TAG)
 }

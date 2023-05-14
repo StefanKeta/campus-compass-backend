@@ -37,6 +37,7 @@ lazy val allProjects = List(
   regionalHttpServer,
   regionalDomain,
   regionalAuthorizationAlgebra,
+  regionalUniversityAlgebra,
   regionalPersistence,
 )
 
@@ -59,6 +60,9 @@ lazy val sharedSettings = Seq(
   ThisBuild / version := "1.0.0",
   ThisBuild / organization := "ro.campus-compass",
   ThisBuild / scalaVersion := Dependencies.projectScalaVersion,
+  scalacOptions ++= Seq(
+    "-Xmax-inlines:33"
+  ),
   Compile / compile / wartremoverErrors :=
     Seq(
       Wart.ExplicitImplicitTypes,
@@ -284,6 +288,7 @@ lazy val regionalHttpServer =
     .dependsOn(commonBaseHttp)
     .dependsOn(regionalDomain)
     .dependsOn(regionalAuthorizationAlgebra)
+    .dependsOn(regionalUniversityAlgebra)
 
 lazy val regionalDomain =
   regionalModule("domain")
@@ -297,6 +302,10 @@ def regionalAlgebraModule(path: String*): Project =
 lazy val regionalAuthorizationAlgebra =
   regionalAlgebraModule("authorization")
     .dependsOn(commonRedis)
+
+lazy val regionalUniversityAlgebra =
+  regionalAlgebraModule("university")
+    .dependsOn(commonMongo)
 
 lazy val regionalPersistence =
   regionalModule("persistence")
