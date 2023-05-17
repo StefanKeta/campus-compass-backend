@@ -57,7 +57,7 @@ def campusCompassModule(path: List[String], baseDir: Option[String] = None): Pro
 }
 
 lazy val sharedSettings = Seq(
-  ThisBuild / version := "1.0.0",
+  ThisBuild / version := "latest",
   ThisBuild / organization := "ro.campus-compass",
   ThisBuild / scalaVersion := Dependencies.projectScalaVersion,
   scalacOptions ++= Seq(
@@ -225,6 +225,9 @@ def globalModule(path: String*): Project =
 
 lazy val globalMain =
   globalModule("main")
+    .enablePlugins(JavaAppPackaging)
+    .enablePlugins(DockerPlugin)
+    .settings(dockerExposedPorts := Seq(8080))
     .dependsOn(commonRedis)
     .dependsOn(globalHttpServer)
     .dependsOn(globalPersistence)
@@ -267,8 +270,6 @@ lazy val globalPersistence =
     .dependsOn(commonMongo)
     .dependsOn(globalDomain)
 
-addCommandAlias("runGlobal", "global-main/run")
-
 // * ------------------------------------------------------- *
 // * ------------------------------------------------------- *
 //     Regional Server Modules
@@ -280,6 +281,11 @@ def regionalModule(path: String*): Project =
 
 lazy val regionalMain =
   regionalModule("main")
+    .enablePlugins(JavaAppPackaging)
+    .enablePlugins(DockerPlugin)
+    .settings(
+      dockerExposedPorts := Seq(8080)
+    )
     .dependsOn(regionalHttpServer)
     .dependsOn(regionalPersistence)
 
@@ -311,5 +317,3 @@ lazy val regionalPersistence =
   regionalModule("persistence")
     .dependsOn(commonMongo)
     .dependsOn(regionalDomain)
-
-addCommandAlias("runRegional", "regional-main/run")

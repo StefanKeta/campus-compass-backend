@@ -52,15 +52,16 @@ jobs:
           NEW_VERSION: ${{ needs.increment-version.outputs.NEW_VERSION }}
         run: |-
           echo "Building and publishing Docker images"
-          echo "New version: $NEW_VERSION"
+          
+          sbt global-main/docker:publishLocal
+          sbt regional-main/docker:publishLocal
+
+          docker tag global-main:latest ${{ vars.DOCKER_IMAGE_GLOBAL }}:$NEW_VERSION
+          docker tag regional-main:latest ${{ vars.DOCKER_IMAGE_REGIONAL }}:$NEW_VERSION
+          
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          
-          echo "Global Backend"        
-          docker build -t ${{ vars.DOCKER_IMAGE_GLOBAL }}:$NEW_VERSION . -f Global.Dockerfile
+                
           docker push ${{ vars.DOCKER_IMAGE_GLOBAL }}:$NEW_VERSION
-          
-          echo "Regional Backend"
-          docker build -t ${{ vars.DOCKER_IMAGE_REGIONAL }}:$NEW_VERSION . -f Regional.Dockerfile
           docker push ${{ vars.DOCKER_IMAGE_REGIONAL }}:$NEW_VERSION
 
   update-gitops-repository:
