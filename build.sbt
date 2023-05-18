@@ -227,7 +227,10 @@ lazy val globalMain =
   globalModule("main")
     .enablePlugins(JavaAppPackaging)
     .enablePlugins(DockerPlugin)
-    .settings(dockerExposedPorts := Seq(8080))
+    .settings(
+      dockerExposedPorts := Seq(8080),
+      dockerBaseImage := "openjdk:17"
+    )
     .dependsOn(commonRedis)
     .dependsOn(globalHttpServer)
     .dependsOn(globalPersistence)
@@ -284,7 +287,8 @@ lazy val regionalMain =
     .enablePlugins(JavaAppPackaging)
     .enablePlugins(DockerPlugin)
     .settings(
-      dockerExposedPorts := Seq(8080)
+      dockerExposedPorts := Seq(8080),
+      dockerBaseImage := "openjdk:17"
     )
     .dependsOn(regionalHttpServer)
     .dependsOn(regionalPersistence)
