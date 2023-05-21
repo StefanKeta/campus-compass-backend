@@ -338,6 +338,7 @@ lazy val regionalAuthorizationAlgebra =
 lazy val regionalUniversityAlgebra =
   regionalAlgebraModule("university")
     .dependsOn(commonMongo)
+    .dependsOn(commonEmail)
 
 lazy val regionalApplicationAlgebra =
   regionalAlgebraModule("application")

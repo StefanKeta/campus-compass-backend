@@ -17,6 +17,7 @@ trait ApplicationRepository[F[_]] {
   def findAll(): F[List[Application]]
   def updateStatus(applicationId: UUID, status: ApplicationStatus): F[Unit]
   def updateZipUrl(applicationId: UUID, url: String): F[Unit]
+  def updateSentCredentials(applicationId: UUID, sentCredentials: Option[Boolean]): F[Unit]
 }
 
 object ApplicationRepository {
@@ -36,4 +37,10 @@ object ApplicationRepository {
 
     override def updateZipUrl(applicationId: UUID, url: String): F[Unit] =
       docs.flatMap(_.updateOne(Filter.eq("_id", applicationId), Update.set("zipFile", Some(url))).void)
+
+    override def updateSentCredentials(applicationId: UUID, sentHousingCredentials: Option[Boolean]): F[Unit] =
+      docs.flatMap(_.updateOne(
+        Filter.eq("_id", applicationId),
+        Update.set("sentHousingCredentials", Some(sentHousingCredentials))
+      ).void)
 }

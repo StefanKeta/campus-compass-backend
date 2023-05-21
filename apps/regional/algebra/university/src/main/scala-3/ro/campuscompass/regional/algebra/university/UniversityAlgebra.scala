@@ -1,9 +1,13 @@
 package ro.campuscompass.regional.algebra.university
 
-import cats.{ Functor, Monad }
+import cats.effect.*
+import cats.*
+import cats.effect.std.Random
 import cats.implicits.*
-import ro.campuscompass.regional.domain.{ Application, ApplicationStatus, StudyProgram }
-import ro.campuscompass.regional.persistance.{ ApplicationRepository, ProgramRepository }
+import cats.effect.implicits.*
+import ro.campuscompass.common.email.*
+import ro.campuscompass.regional.domain.*
+import ro.campuscompass.regional.persistance.*
 
 import java.util.UUID
 
@@ -12,10 +16,13 @@ trait UniversityAlgebra[F[_]] {
   def programs(universityId: Option[UUID]): F[List[StudyProgram]]
   def applications(universityId: UUID): F[List[Application]]
   def updateApplicationStatus(applicationId: UUID, status: ApplicationStatus): F[Unit]
+  def sendHousingCredentials(universityId: UUID): F[Unit]
 }
 
 object UniversityAlgebra {
-  def apply[F[_]: Monad](
+  def apply[F[_]: Async: Random](
+    emailAlgebra: EmailAlgebra[F],
+    housingTemplate: HousingCredentialsTemplate,
     programRepository: ProgramRepository[F],
     applicationRepository: ApplicationRepository[F]
   ): UniversityAlgebra[F] = new UniversityAlgebra[F]:
@@ -36,4 +43,29 @@ object UniversityAlgebra {
 
     def updateApplicationStatus(applicationId: UUID, status: ApplicationStatus): F[Unit] =
       applicationRepository.updateStatus(applicationId, status)
+
+    def sendHousingCredentials(universityId: UUID): F[Unit] =
+      for {
+        apps <- applications(universityId)
+        _ <- fs2.Stream.emits(apps.filter(app => app.housing && app.sentHousingCredentials.contains(false)))
+          .covary[F]
+          .evalTap { app =>
+            for {
+              user     <- List.fill(6)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
+              password <- List.fill(8)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
+              _ <- emailAlgebra.send(
+                EmailRequest(
+                  EmailAddress.unsafe(emailAlgebra.config.sender),
+                  List(EmailAddress.unsafe(app.email)),
+                  Subject("Housing credentials"),
+                  Content(housingTemplate(user, password, emailAlgebra.config.sender))
+                )
+              )
+              _ <- applicationRepository.updateSentCredentials(app._id, Some(true))
+            } yield ()
+          }
+          .compile
+          .drain
+      } yield ()
+
 }

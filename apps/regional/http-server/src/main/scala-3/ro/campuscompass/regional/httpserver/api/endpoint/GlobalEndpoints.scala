@@ -6,7 +6,7 @@ import ro.campuscompass.common.domain.error.GenericError
 import ro.campuscompass.regional.domain.*
 import ro.campuscompass.regional.httpserver.api.model.*
 import sttp.model.StatusCode
-import sttp.tapir.*
+import sttp.tapir.{ path, * }
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.circe.*
 import sttp.tapir.model.*
@@ -17,7 +17,7 @@ import java.util.UUID
 object GlobalEndpoints {
   private val REGIONAL_AUTHORIZATION_TAG = "Regional-global interactiong endpoints"
 
-  def apply(): List[AnyEndpoint] = List(authorizeUniversity, authorizeStudent, listPrograms, createApplication)
+  def apply(): List[AnyEndpoint] = List(authorizeUniversity, authorizeStudent, listPrograms, createApplication, listApplications)
 
   val authorizeUniversity: Endpoint[String, AuthorizeUniversityDTO, AuthError.AuthUniversityError, AuthToken, Any] =
     endpoint
@@ -73,6 +73,21 @@ object GlobalEndpoints {
       .securityIn("api" / "v1" / "application")
       .in(jsonBody[CreateApplicationDTO])
       .out(jsonBody[UUID])
+      .errorOut(
+        oneOf[GenericError](
+          oneOfVariant(
+            statusCode(StatusCode.InternalServerError).and(jsonBody[GenericError])
+          )
+        )
+      )
+      .tag(REGIONAL_AUTHORIZATION_TAG)
+
+  val listApplications: Endpoint[(String, UUID), Unit, GenericError, List[StudentApplicationDTO], Any] =
+    endpoint
+      .get
+      .securityIn(auth.apiKey[String](header("X-Regional-Api-Key")))
+      .securityIn("api" / "v1" / path[UUID]("studentId") / "application")
+      .out(jsonBody[List[StudentApplicationDTO]])
       .errorOut(
         oneOf[GenericError](
           oneOfVariant(

@@ -6,8 +6,7 @@
       <env name="JWT_KEY" value="campus-compass" />
       <env name="MONGO_PASSWORD" value="campus-compass" />
       <env name="MONGO_USER" value="campus-compass" />
-      <env name="SMTP_PASSWORD" value="" />
-      <env name="SMTP_USER" value="" />
+      <env name="SMTP_PASSWORD" value="fuklvkceellkyqjx" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="ro.campuscompass.global.Main" />
     <module name="global-main" />

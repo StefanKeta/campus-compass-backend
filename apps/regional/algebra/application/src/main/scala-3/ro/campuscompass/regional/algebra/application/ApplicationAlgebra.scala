@@ -16,6 +16,8 @@ trait ApplicationAlgebra[F[_]] {
 
   def getApplication(applicationId: UUID): F[Application]
 
+  def getApplicationForStudent(studentId: UUID): F[List[Application]]
+
   def submitApplication(applicationId: UUID): F[Unit]
 
   def uploadZip(applicationId: UUID, zipFile: File, fileName: Option[String]): F[Unit]
@@ -38,6 +40,11 @@ object ApplicationAlgebra {
             GenericError(s"Application with id ${applicationId} does not exists")
           )
       } yield app
+
+      def getApplicationForStudent(studentId: UUID): F[List[Application]] =
+        for {
+          apps <- applicationRepository.findAll()
+        } yield apps.filter(_.studentId == studentId)
 
       def submitApplication(applicationId: UUID): F[Unit] = for {
         app <- getApplication(applicationId)
