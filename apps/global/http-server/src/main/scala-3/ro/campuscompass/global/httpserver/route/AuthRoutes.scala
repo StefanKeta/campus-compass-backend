@@ -19,11 +19,10 @@ class AuthRoutes[F[_]: Functor](authAlgebra: AuthAlgebra[F]) extends Routes[F] {
 
   private val loginRoute = loginEndpoint.serverLogicRecoverErrors(input =>
     authAlgebra.login(input.username, input.password)
-      .map(jwt => AuthToken(jwt.value))
   )
 
   private val registerRoute = registerEndpoint.serverLogicRecoverErrors(input =>
-    authAlgebra.register(input.email, input.password).map(jwt => AuthToken(jwt.value))
+    authAlgebra.register(input.email, input.password)
   )
 }
 

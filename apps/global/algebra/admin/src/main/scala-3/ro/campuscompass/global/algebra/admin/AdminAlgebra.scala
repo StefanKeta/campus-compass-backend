@@ -5,6 +5,7 @@ import cats.effect.*
 import cats.effect.std.{ Random, UUIDGen }
 import cats.implicits.*
 import cats.syntax.*
+import com.google.cloud.firestore.Firestore
 import io.circe.generic.auto.*
 import mongo4cats.database.MongoDatabase
 import org.typelevel.log4cats.Logger
@@ -29,7 +30,8 @@ object AdminAlgebra extends Logging {
   def apply[F[_]: Async: Random](
     userRepository: UserRepository[F],
     universityRepository: UniversityRepository[F],
-    emailAlgebra: EmailAlgebra[F]
+    universityFirebaseRepository: UniversityFirebaseRepository[F],
+    emailAlgebra: EmailAlgebra[F],
   ): AdminAlgebra[F] = new AdminAlgebra[F]:
     override def getUniversities: F[List[University]] = for {
       _            <- logger.info("Getting all the universities by admin")
@@ -38,7 +40,11 @@ object AdminAlgebra extends Logging {
     } yield universities
 
     override def confirmExistence(universityId: UUID): F[Unit] = for {
-      _           <- logger.info(s"Confirming university with $universityId...")
+      _        <- logger.info(s"Confirming university with $universityId...")
+      maybeUni <- universityRepository.find(universityId)
+      university <- maybeUni match
+        case Some(uni) => ApplicativeThrow[F].pure(uni)
+        case None      => ApplicativeThrow[F].raiseError(UniversityNotFound(s"University with id: $universityId does not exist!"))
       isConfirmed <- universityRepository.isConfirmed(universityId)
       _ <- isConfirmed match
         case Some(isConfirmed) =>
@@ -46,13 +52,14 @@ object AdminAlgebra extends Logging {
             logger.error("You cannot confirm the identity twice!") *> MonadThrow[F].raiseError(
               UniversityAlreadyConfirmed("The university you are trying to get confirmation for already exists!")
             )
-          else
-            createUniversityUser(universityId)
+          else for {
+            uniId <- createUniversityUser(universityId)
+            _     <- universityFirebaseRepository.persistUniversity(UniversityFirebase(uniId, university.name))
+          } yield ()
         case None =>
-          logger.error(s"University with id: $universityId does not exist!") *> ApplicativeThrow[F].raiseError(
-            UniversityNotFound(s"University with id: $universityId does not exist!")
+          ApplicativeThrow[F].raiseError(UniversityNotFound(s"University with id: $universityId does not exist!")) *> logger.info(
+            s"University $universityId does not exist!"
           )
-      _ <- logger.info(s"University $universityId confirmed!")
     } yield ()
 
     override def rejectUniversityApplication(universityId: UUID): F[Unit] = for {
@@ -66,14 +73,14 @@ object AdminAlgebra extends Logging {
       }
     } yield ()
 
-    private def createUniversityUser(universityId: UUID): F[Unit] = for {
+    private def createUniversityUser(universityId: UUID): F[UUID] = for {
       university     <- retrieveUniversity(universityId)
-      usedId         <- UUIDGen[F].randomUUID
+      userId         <- UUIDGen[F].randomUUID
       credentials    <- generateCredentials()
       hashedPassword <- SCrypt.hash(credentials.password)
       now            <- Time.now
-      _              <- userRepository.insert(User(usedId, credentials.username, hashedPassword, Role.University, now))
-      _              <- universityRepository.updateUserId(universityId, usedId)
+      _              <- userRepository.insert(User(userId, credentials.username, hashedPassword, Role.University, now))
+      _              <- universityRepository.updateUserId(universityId, userId)
 
       template <- ConfirmUniversityTemplate[F]
       _ <- emailAlgebra.send(EmailRequest(
@@ -82,7 +89,7 @@ object AdminAlgebra extends Logging {
         Subject("University confirmation"),
         Content(template(credentials.username, credentials.password, emailAlgebra.config.sender))
       ))
-    } yield ()
+    } yield userId
 
     private def rejectUniversity(universityId: UUID): F[Unit] = for {
       university <- retrieveUniversity(universityId)

@@ -10,18 +10,20 @@ import java.util.UUID
 final case class StudentApplicationRep(
   _id: UUID,
   userId: UUID,
-  universityId: UUID,
   firstName: String,
   lastName: String,
-  email: String
+  email: String,
+  programmeId: UUID,
+  universityUserId: UUID
 ) {
   def domain: StudentApplication = StudentApplication(
-    _id          = _id,
-    userId       = userId,
-    universityId = universityId,
-    firstName    = firstName,
-    lastName     = lastName,
-    email        = email
+    _id              = _id,
+    userId           = userId,
+    firstName        = firstName,
+    lastName         = lastName,
+    email            = email,
+    programmeId      = programmeId,
+    universityUserId = universityUserId
   )
 }
 object StudentApplicationRep {
@@ -31,9 +33,10 @@ object StudentApplicationRep {
     StudentApplicationRep(
       application._id,
       application.userId,
-      application.universityId,
       application.firstName,
       application.lastName,
-      application.email
+      application.email,
+      application.programmeId,
+      application.universityUserId
     )
 }

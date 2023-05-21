@@ -9,23 +9,34 @@ import ro.campuscompass.common.http.Routes
 import ro.campuscompass.global.algebra.auth.AuthAlgebra
 import ro.campuscompass.global.algebra.student.StudentAlgebra
 import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints
-import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints.{applyForUniversityEndpoint, listAppliedUniverstitiesEndpoint, listUniversitiesEndpoint}
+import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints.*
 import ro.campuscompass.global.httpserver.api.model.StudentApplicationDTO
 import sttp.tapir.AnyEndpoint
 
 class StudentRoutes[F[_]: Async](authAlgebra: AuthAlgebra[F], studentAlgebra: StudentAlgebra[F])
   extends Routes[F] {
+  override def routes = List(applyToProgrammeRoute, listUniversitiesRoute, listAppliedUniversitiesRoute)
 
-  private val applyToUniversityRoute =
-    applyForUniversityEndpoint.serverSecurityLogicRecoverErrors(token =>
+  override def endpoints: List[AnyEndpoint] = StudentEndpoints()
+
+  private val applyToProgrammeRoute =
+    applyForProgrammeEndpoint.serverSecurityLogicRecoverErrors(token =>
       authAlgebra.authenticate(JWT(token.value), Role.Student)
     ).serverLogicRecoverErrors(userId =>
       application =>
         for {
           _id <- UUIDGen.randomUUID[F]
           student = application.domain(_id, userId)
-        } yield studentAlgebra.applyToUniversity(student)
+        } yield studentAlgebra.applyToProgramme(student)
     )
+
+  private val listAppliedProgrammesRoute = listAppliedProgrammesEndpoint.serverSecurityLogicRecoverErrors(token =>
+    authAlgebra.authenticate(JWT(token.value), Role.Student)
+  ).serverLogicRecoverErrors(_ => studentAlgebra.listAppliedProgrammes)
+
+  private val viewApplicationRoute = viewApplicationEndpoint.serverSecurityLogicRecoverErrors(token =>
+    authAlgebra.authenticate(JWT(token.value), Role.Student)
+  ).serverLogicRecoverErrors(_ => dto => studentAlgebra.viewApplication(dto.studentId, dto.universityId, dto.applicationId))
 
   private val listUniversitiesRoute = listUniversitiesEndpoint.serverSecurityLogicRecoverErrors(token =>
     authAlgebra.authenticate(JWT(token.value), Role.Student)
@@ -35,9 +46,6 @@ class StudentRoutes[F[_]: Async](authAlgebra: AuthAlgebra[F], studentAlgebra: St
     authAlgebra.authenticate(JWT(token.value), Role.Student)
   ).serverLogicRecoverErrors(userId => _ => studentAlgebra.listAppliedUniversities(userId))
 
-  override def routes = List(applyToUniversityRoute, listUniversitiesRoute, listAppliedUniversitiesRoute)
-
-  override def endpoints: List[AnyEndpoint] = StudentEndpoints()
 }
 
 object StudentRoutes {

@@ -24,7 +24,9 @@ object Dependencies {
 
   private lazy val http4sVersion = "0.23.18"
   lazy val http4s                = ("org.http4s" %% "http4s-ember-server" % http4sVersion).withSources()
+  lazy val http4sClient          = ("org.http4s" %% "http4s-ember-client" % http4sVersion).withSources()
   lazy val http4sEmber           = ("org.http4s" %% "http4s-dsl"          % http4sVersion).withSources()
+  lazy val http4sCirce           = ("org.http4s" %% "http4s-circe"        % http4sVersion).withSources()
 
   private lazy val tapirVersion = "1.2.10"
   lazy val tapir                = ("com.softwaremill.sttp.tapir" %% "tapir-core"              % tapirVersion).withSources()
@@ -55,4 +57,5 @@ object Dependencies {
 
   lazy val minio = ("io.minio" % "minio" % "8.5.2").withSources()
 
+  lazy val firebase = ("com.google.cloud" % "google-cloud-firestore" % "3.9.1").withSources()
 }

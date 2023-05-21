@@ -18,6 +18,7 @@ lazy val allProjects = List(
   commonBaseLogging,
   commonBaseType,
   commonBaseTime,
+  commonFirebase,
   commonMongo,
   commonRedis,
   commonEmail,
@@ -32,6 +33,7 @@ lazy val allProjects = List(
   globalStudentAlgebra,
   globalUniversityAlgebra,
   globalPersistence,
+  globalClient,
   // REGIONAL,
   regionalMain,
   regionalHttpServer,
@@ -161,7 +163,9 @@ lazy val commonBaseHttp =
         Dependencies.tapirHttp4s,
         Dependencies.tapirSwagger,
         Dependencies.http4s,
-        Dependencies.http4sEmber
+        Dependencies.http4sEmber,
+        Dependencies.http4sClient,
+        Dependencies.http4sCirce
       )
     )
 
@@ -177,6 +181,14 @@ lazy val commonBaseTime =
 def commonModule(path: String*): Project =
   campusCompassModule("common" :: path.toList)
     .dependsOn(commonBase)
+
+lazy val commonFirebase =
+  commonModule("firebase")
+    .settings(
+      libraryDependencies ++= Seq(
+        Dependencies.firebase
+      )
+    )
 
 lazy val commonMongo =
   commonModule("mongo")
@@ -234,6 +246,7 @@ lazy val globalMain =
     .dependsOn(commonRedis)
     .dependsOn(globalHttpServer)
     .dependsOn(globalPersistence)
+    .dependsOn(globalClient)
 
 lazy val globalHttpServer =
   globalModule("http-server")
@@ -243,6 +256,7 @@ lazy val globalHttpServer =
     .dependsOn(globalAuthAlgebra)
     .dependsOn(globalStudentAlgebra)
     .dependsOn(globalUniversityAlgebra)
+    .dependsOn(globalClient)
 
 lazy val globalDomain =
   globalModule("domain")
@@ -252,6 +266,7 @@ def globalAlgebraModule(path: String*): Project =
   globalModule(("algebra" :: path.toList) *)
     .dependsOn(globalDomain)
     .dependsOn(globalPersistence)
+    .dependsOn(globalClient)
 
 lazy val globalAdminAlgebra =
   globalAlgebraModule("admin")
@@ -263,7 +278,7 @@ lazy val globalAuthAlgebra =
 
 lazy val globalStudentAlgebra =
   globalAlgebraModule("student")
-    .dependsOn(commonEmail)
+    .dependsOn(commonEmail, globalClient)
 
 lazy val globalUniversityAlgebra =
   globalAlgebraModule("university")
@@ -271,6 +286,11 @@ lazy val globalUniversityAlgebra =
 lazy val globalPersistence =
   globalModule("persistence")
     .dependsOn(commonMongo)
+    .dependsOn(commonFirebase)
+    .dependsOn(globalDomain)
+
+lazy val globalClient =
+  globalModule("client")
     .dependsOn(globalDomain)
 
 // * ------------------------------------------------------- *

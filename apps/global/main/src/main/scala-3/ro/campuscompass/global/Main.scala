@@ -39,6 +39,6 @@ object Main extends IOApp with Logging {
   override def reportFailure(err: Throwable): IO[Unit] =
     logger[IO].error("Uncaught error in thread-pool", err).as(())
 
-  override def run(args: List[String]): IO[ExitCode] = 
+  override def run(args: List[String]): IO[ExitCode] =
     GlobalApp[IO].useForever.as(ExitCode.Success)
 }

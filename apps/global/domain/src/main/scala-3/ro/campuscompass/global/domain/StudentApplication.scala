@@ -7,8 +7,9 @@ import java.util.UUID
 final case class StudentApplication(
   _id: UUID,
   userId: UUID,
-  universityId: UUID,
   firstName: String,
   lastName: String,
-  email: String
+  email: String,
+  programmeId: UUID,
+  universityUserId:UUID
 )
