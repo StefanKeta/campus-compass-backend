@@ -7,13 +7,14 @@ import pureconfig.generic.derivation.default.*
 import pureconfig.module.catseffect.syntax.*
 import ro.campuscompass.common.crypto.JwtConfig
 import ro.campuscompass.common.http.ServerConfig
+import ro.campuscompass.common.minio.MinIOConfig
 import ro.campuscompass.common.mongo.MongoDBConfig
 import ro.campuscompass.common.redis.RedisConfig
 
 final case class AppConfig(
   server: ServerConfig,
   regionalApiKey: String,
-  // email: EmailConfig,
+  minio: MinIOConfig,
   mongo: MongoDBConfig,
   redis: RedisConfig,
   jwt: JwtConfig

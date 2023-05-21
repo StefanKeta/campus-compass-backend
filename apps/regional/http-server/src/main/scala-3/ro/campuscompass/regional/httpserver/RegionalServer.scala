@@ -9,6 +9,7 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Server
 import ro.campuscompass.common.http.ServerConfig
 import ro.campuscompass.common.logging.*
+import ro.campuscompass.regional.algebra.application.ApplicationAlgebra
 import ro.campuscompass.regional.algebra.authorization.AuthorizationAlgebra
 import ro.campuscompass.regional.algebra.university.UniversityAlgebra
 
@@ -43,10 +44,11 @@ object RegionalServer {
   def start[F[_]: Async](serverConfig: ServerConfig)(
     authAlgebra: AuthorizationAlgebra[F],
     universityAlgebra: UniversityAlgebra[F],
+    applicationAlgebra: ApplicationAlgebra[F],
     regionalApiKey: String,
   ): Resource[F, Server] =
     new RegionalServer(
       serverConfig,
-      RegionalServerRoutes[F](authAlgebra, universityAlgebra, regionalApiKey)
+      RegionalServerRoutes[F](authAlgebra, universityAlgebra, applicationAlgebra, regionalApiKey)
     ).startServer
 }

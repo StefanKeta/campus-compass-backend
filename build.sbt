@@ -40,6 +40,7 @@ lazy val allProjects = List(
   regionalDomain,
   regionalAuthorizationAlgebra,
   regionalUniversityAlgebra,
+  regionalApplicationAlgebra,
   regionalPersistence,
 )
 
@@ -319,6 +320,7 @@ lazy val regionalHttpServer =
     .dependsOn(regionalDomain)
     .dependsOn(regionalAuthorizationAlgebra)
     .dependsOn(regionalUniversityAlgebra)
+    .dependsOn(regionalApplicationAlgebra)
 
 lazy val regionalDomain =
   regionalModule("domain")
@@ -336,6 +338,11 @@ lazy val regionalAuthorizationAlgebra =
 lazy val regionalUniversityAlgebra =
   regionalAlgebraModule("university")
     .dependsOn(commonMongo)
+
+lazy val regionalApplicationAlgebra =
+  regionalAlgebraModule("application")
+    .dependsOn(commonMongo)
+    .dependsOn(commonMinio)
 
 lazy val regionalPersistence =
   regionalModule("persistence")

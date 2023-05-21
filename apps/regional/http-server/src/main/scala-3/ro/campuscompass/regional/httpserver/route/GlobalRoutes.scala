@@ -5,23 +5,26 @@ import cats.implicits.*
 import ro.campuscompass.common.domain.AuthToken
 import ro.campuscompass.common.domain.error.AuthError
 import ro.campuscompass.common.http.Routes
+import ro.campuscompass.regional.algebra.application.ApplicationAlgebra
 import ro.campuscompass.regional.algebra.authorization.AuthorizationAlgebra
 import ro.campuscompass.regional.algebra.university.UniversityAlgebra
 import ro.campuscompass.regional.httpserver.api.endpoint.GlobalEndpoints
 import sttp.tapir.AnyEndpoint
-import ro.campuscompass.regional.httpserver.api.model.{StudyProgramDTO, UpdateApplicationStatusDTO}
+import ro.campuscompass.regional.httpserver.api.model.{ StudyProgramDTO, UpdateApplicationStatusDTO }
 import sttp.tapir.server.ServerEndpoint
 
 class GlobalRoutes[F[_]: MonadThrow](
   authAlgebra: AuthorizationAlgebra[F],
   universityAlgebra: UniversityAlgebra[F],
+  applicationAlgebra: ApplicationAlgebra[F],
   regionalApiKey: String
 ) extends Routes[F] {
   import ro.campuscompass.regional.httpserver.api.endpoint.GlobalEndpoints._
 
   override def endpoints: List[AnyEndpoint] = GlobalEndpoints()
 
-  override def routes: List[ServerEndpoint[Any, F]] = List(authorizeUniversityRoute, authorizeStudentRoute, listProgramsRoute)
+  override def routes: List[ServerEndpoint[Any, F]] =
+    List(authorizeUniversityRoute, authorizeStudentRoute, listProgramsRoute, createApplicationRoute)
 
   private val authorizeUniversityRoute = authorizeUniversity
     .serverSecurityLogicRecoverErrors(apiKey =>
@@ -58,13 +61,25 @@ class GlobalRoutes[F[_]: MonadThrow](
         universityAlgebra.programs(None).map(_.map(StudyProgramDTO(_)))
     )
 
+  private val createApplicationRoute = createApplication
+    .serverSecurityLogicRecoverErrors(apiKey =>
+      ApplicativeThrow[F].raiseWhen(apiKey != regionalApiKey)(
+        AuthError.Unauthorized("Invalid API key")
+      )
+    )
+    .serverLogicRecoverErrors(_ =>
+      dto =>
+        applicationAlgebra.createApplication(???)
+    )
+
 }
 
 object GlobalRoutes {
   def apply[F[_]: MonadThrow](
     authAlgebra: AuthorizationAlgebra[F],
     universityAlgebra: UniversityAlgebra[F],
+    applicationAlgebra: ApplicationAlgebra[F],
     regionalApiKey: String
   ) =
-    new GlobalRoutes[F](authAlgebra, universityAlgebra, regionalApiKey)
+    new GlobalRoutes[F](authAlgebra, universityAlgebra, applicationAlgebra, regionalApiKey)
 }

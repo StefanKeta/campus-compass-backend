@@ -12,10 +12,12 @@ import sttp.tapir.json.circe.*
 import sttp.tapir.model.*
 import sttp.tapir.server.ServerEndpoint
 
+import java.util.UUID
+
 object GlobalEndpoints {
   private val REGIONAL_AUTHORIZATION_TAG = "Regional-global interactiong endpoints"
 
-  def apply(): List[AnyEndpoint] = List(authorizeUniversity, authorizeStudent, listPrograms)
+  def apply(): List[AnyEndpoint] = List(authorizeUniversity, authorizeStudent, listPrograms, createApplication)
 
   val authorizeUniversity: Endpoint[String, AuthorizeUniversityDTO, AuthError.AuthUniversityError, AuthToken, Any] =
     endpoint
@@ -32,7 +34,7 @@ object GlobalEndpoints {
         )
       )
       .tag(REGIONAL_AUTHORIZATION_TAG)
-  
+
   val authorizeStudent: Endpoint[String, AuthorizeStudentDTO, AuthError.AuthStudentError, AuthToken, Any] =
     endpoint
       .post
@@ -49,13 +51,28 @@ object GlobalEndpoints {
       )
       .tag(REGIONAL_AUTHORIZATION_TAG)
 
-
   val listPrograms: Endpoint[String, Unit, GenericError, List[StudyProgramDTO], Any] =
     endpoint
       .get
       .securityIn(auth.apiKey[String](header("X-Regional-Api-Key")))
       .securityIn("api" / "v1" / "program")
       .out(jsonBody[List[StudyProgramDTO]])
+      .errorOut(
+        oneOf[GenericError](
+          oneOfVariant(
+            statusCode(StatusCode.InternalServerError).and(jsonBody[GenericError])
+          )
+        )
+      )
+      .tag(REGIONAL_AUTHORIZATION_TAG)
+
+  val createApplication: Endpoint[String, CreateApplicationDTO, GenericError, UUID, Any] =
+    endpoint
+      .post
+      .securityIn(auth.apiKey[String](header("X-Regional-Api-Key")))
+      .securityIn("api" / "v1" / "application")
+      .in(jsonBody[CreateApplicationDTO])
+      .out(jsonBody[UUID])
       .errorOut(
         oneOf[GenericError](
           oneOfVariant(
