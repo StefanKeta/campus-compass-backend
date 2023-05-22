@@ -4,7 +4,7 @@ import ro.campuscompass.common.domain.Credentials
 
 import java.util.UUID
 
-case class HousingCredentials(
+final case class HousingCredentials(
   studentId: UUID,
   universityId: UUID,
   credentials: Credentials

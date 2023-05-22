@@ -33,8 +33,7 @@ object RegionalApp extends Logging {
     emailAlgebra <- Resource.eval(SMTPEmailInterpreter[F](config.email))
 
     authAlgebra       <- Resource.pure(AuthorizationAlgebra[F](redisCommands, config.jwt))
-    housingTemplate   <- Resource.eval(HousingCredentialsTemplate[F])
-    universityAlgebra <- Resource.pure(UniversityAlgebra(housingRepository, emailAlgebra, housingTemplate, programRepository, applicationRepository))
+    universityAlgebra <- Resource.eval(UniversityAlgebra(housingRepository, emailAlgebra, programRepository, applicationRepository))
     applicationAlgebra <- Resource.pure(ApplicationAlgebra(minio, applicationRepository))
 
     server <- RegionalServer.start(config.server)(

@@ -12,7 +12,7 @@ object HousingCredentialsFirebaseRepository {
   def apply[F[_]: Async](firestore: Firestore) = new HousingCredentialsFirebaseRepository[F]:
     val collection = firestore.collection("users")
 
-    override def persistUniversity(creds: HousingCredentials): F[Unit] = {
+    override def insert(creds: HousingCredentials): F[Unit] = {
       Async[F].delay(collection.document(s"${creds.studentId}").set(java.util.Map.of(
         "userType",
         "STUDENT",

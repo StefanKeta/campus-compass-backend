@@ -8,6 +8,7 @@ import cats.effect.implicits.*
 import ro.campuscompass.common.email.*
 import ro.campuscompass.regional.domain.*
 import ro.campuscompass.regional.persistance.*
+import ro.campuscompass.common.domain.Credentials
 
 import java.util.UUID
 
@@ -23,56 +24,60 @@ object UniversityAlgebra {
   def apply[F[_]: Async: Random](
     housingRepository: HousingCredentialsFirebaseRepository[F],
     emailAlgebra: EmailAlgebra[F],
-    housingTemplate: HousingCredentialsTemplate,
     programRepository: ProgramRepository[F],
     applicationRepository: ApplicationRepository[F]
-  ): UniversityAlgebra[F] = new UniversityAlgebra[F]:
-    override def createProgram(program: StudyProgram): F[Unit] =
-      programRepository.insert(program)
+  ): F[UniversityAlgebra[F]] = for {
+    housingTemplate <- HousingCredentialsTemplate[F]
+  } yield {
+    new UniversityAlgebra[F] {
 
-    override def programs(universityId: Option[UUID]): F[List[StudyProgram]] =
-      programRepository.findAll().map { prgs =>
-        universityId.fold(prgs)(u => prgs.filter(_.universityId == u))
-      }
+      override def createProgram(program: StudyProgram): F[Unit] =
+        programRepository.insert(program)
 
-    override def applications(universityId: UUID): F[List[Application]] =
-      for {
-        applications <- applicationRepository.findAll()
-        programs     <- programs(Some(universityId)).map(_.map(_._id))
-        uniApplications = applications.filter(app => programs.contains(app.programId))
-      } yield uniApplications
+      override def programs(universityId: Option[UUID]): F[List[StudyProgram]] =
+        programRepository.findAll().map { prgs =>
+          universityId.fold(prgs)(u => prgs.filter(_.universityId == u))
+        }
 
-    def updateApplicationStatus(applicationId: UUID, status: ApplicationStatus): F[Unit] =
-      applicationRepository.updateStatus(applicationId, status)
+      override def applications(universityId: UUID): F[List[Application]] =
+        for {
+          applications <- applicationRepository.findAll()
+          programs     <- programs(Some(universityId)).map(_.map(_._id))
+          uniApplications = applications.filter(app => programs.contains(app.programId))
+        } yield uniApplications
 
-    def sendHousingCredentials(universityId: UUID): F[Unit] =
-      for {
-        apps <- applications(universityId)
-        _ <- fs2.Stream.emits(apps.filter(app => app.housing && app.sentHousingCredentials.contains(false)))
-          .covary[F]
-          .evalTap { app =>
-            for {
-              user     <- List.fill(6)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
-              password <- List.fill(8)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
-              _ <- housingRepository.insert(HousingCredentials(
-                studentId    = app.studentId,
-                credentials  = Credentials(user, password),
-                universityId = universityId
-              ))
-              _ <- applicationRepository.updateSentCredentials(app._id, Some(true))
-              _ <- emailAlgebra.send(
-                EmailRequest(
-                  EmailAddress.unsafe(emailAlgebra.config.sender),
-                  List(EmailAddress.unsafe(app.email)),
-                  Subject("Housing credentials"),
-                  Content(housingTemplate(user, password, emailAlgebra.config.sender))
+      def updateApplicationStatus(applicationId: UUID, status: ApplicationStatus): F[Unit] =
+        applicationRepository.updateStatus(applicationId, status)
+
+      def sendHousingCredentials(universityId: UUID): F[Unit] =
+        for {
+          apps <- applications(universityId)
+          _ <- fs2.Stream.emits(apps.filter(app => app.housing && app.sentHousingCredentials.contains(false)))
+            .covary[F]
+            .evalTap { app =>
+              for {
+                user     <- List.fill(6)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
+                password <- List.fill(8)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
+                _ <- housingRepository.insert(HousingCredentials(
+                  studentId    = app.studentId,
+                  credentials  = Credentials(user, password),
+                  universityId = universityId
+                ))
+                _ <- applicationRepository.updateSentCredentials(app._id, Some(true))
+                _ <- emailAlgebra.send(
+                  EmailRequest(
+                    EmailAddress.unsafe(emailAlgebra.config.sender),
+                    List(EmailAddress.unsafe(app.email)),
+                    Subject("Housing credentials"),
+                    Content(housingTemplate(user, password, emailAlgebra.config.sender))
+                  )
                 )
-              )
 
-            } yield ()
-          }
-          .compile
-          .drain
-      } yield ()
-
+              } yield ()
+            }
+            .compile
+            .drain
+        } yield ()
+    }
+  }
 }
