@@ -24,7 +24,7 @@ final case class AppConfig(
   regional: RegionalConfig,
   regionalHosts: RegionalHostsConfig,
   apiKey: ApiKeyConfig,
-  firebaseConfig: FirebaseConfig
+  firebase: FirebaseConfig
 ) derives ConfigReader
 
 object AppConfig {

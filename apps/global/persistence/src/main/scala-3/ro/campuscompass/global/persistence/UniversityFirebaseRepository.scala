@@ -15,8 +15,10 @@ object UniversityFirebaseRepository {
   def apply[F[_]: Async](firestore: Firestore) = new UniversityFirebaseRepository[F]:
     val collection = firestore.collection("universities")
     override def persistUniversity(universityFirebase: UniversityFirebase): F[Unit] = {
-      val uniFields = Map("name" -> universityFirebase.name)
-      Async[F].delay(collection.document(s"${universityFirebase.uniUserId}").set(uniFields).addListener(
+      Async[F].delay(collection.document(s"${universityFirebase.uniUserId}").set(java.util.Map.of(
+        "name",
+        universityFirebase.name
+      )).addListener(
         ()                  => (),
         (command: Runnable) => command.run()
       ))

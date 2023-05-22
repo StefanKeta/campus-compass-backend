@@ -22,7 +22,7 @@ object UniversityEndpoints {
       .out(emptyOutput)
       .errorOut(
         oneOf[UniversityError](
-          oneOfVariant(statusCode(StatusCode.BadRequest).and(jsonBody[UniversityError.SomeError]))
+          oneOfVariant(statusCode(StatusCode.BadRequest).and(jsonBody[UniversityError.UniversityEnrolled]))
         )
       )
       .tag(UNIVERSITY_TAG)

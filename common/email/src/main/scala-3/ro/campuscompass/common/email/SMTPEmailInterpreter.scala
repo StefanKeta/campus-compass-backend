@@ -63,7 +63,7 @@ object SMTPEmailInterpreter extends Logging {
         systemProperties.put("mail.smtp.user", emailConfig.smtpUsername)
         systemProperties.put("mail.smtp.starttls.enable", "true")
         systemProperties.put("mail.smtp.ssl.enable", "true")
-        systemProperties.put("mail.smtps.auth", "true")
+        systemProperties.put("mail.smtp.auth", "true")
         systemProperties.put("mail.transport.protocol", "smtps")
         Session.getInstance(
           systemProperties,

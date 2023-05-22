@@ -11,7 +11,6 @@ import io.circe.syntax.*
 import org.typelevel.log4cats.Logger
 import ro.campuscompass.common
 import ro.campuscompass.common.crypto.{ JWT, JwtConfig, JwtUtils, SCrypt }
-import ro.campuscompass.common.domain.Principal.Student
 import ro.campuscompass.common.domain.Role
 import ro.campuscompass.common.domain.Role.{ Admin, University }
 import ro.campuscompass.common.domain.error.AuthError
@@ -19,7 +18,7 @@ import ro.campuscompass.common.logging.Logging
 import ro.campuscompass.common.time.Time
 import ro.campuscompass.global.domain.error.AdminError.UniversityNotFound
 import ro.campuscompass.common.domain.error.AuthError.*
-import ro.campuscompass.global.domain.{ Coordinates, GeneralLoginResponse, LoginResponseDTO, UniversityLoginResponse, User }
+import ro.campuscompass.global.domain.{ Coordinates, LoginResponseDTO, User }
 import ro.campuscompass.global.persistence.{ UniversityRepository, UserRepository }
 import ro.campuscompass.global.domain.User
 import ro.campuscompass.global.client.client.UniversityRegionalClient
@@ -61,8 +60,8 @@ object AuthAlgebra extends Logging {
         ApplicativeThrow[F].raiseError(
           StudentAlreadyEnrolled(s"Student with the email:$email is already enrolled into the platform!")
         )
-      token <- createJWT(insertedUser)
-    } yield token
+      jwt <- createJWT(insertedUser)
+    } yield jwt
 
     override def authenticate(jwt: JWT, role: Role): F[UUID] = for {
       jwtMac <- JwtUtils.verifyAndParseJwt(jwt, jwtConfig)
@@ -102,10 +101,10 @@ object AuthAlgebra extends Logging {
           node                 <- identifyNode(user._id)
           universityJwt        <- universityRegionalClient.generateUniversityUserJwt(user._id, node)
           regionalToRedirectTo <- regionalToRedirectTo(node.host)
-        } yield UniversityLoginResponse(universityJwt, regionalToRedirectTo)
+        } yield LoginResponseDTO(universityJwt, Some(regionalToRedirectTo))
       case _ => for {
           jwt <- createJWT(user)
-        } yield GeneralLoginResponse(jwt)
+        } yield LoginResponseDTO(jwt,None)
 
     private def regionalToRedirectTo(nodeHost: String): F[String] =
       Applicative[F].pure(s"$nodeHost.${regionalHostsConfig.regionalFE}")

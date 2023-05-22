@@ -7,7 +7,7 @@ import ro.campuscompass.common.domain.error.AuthError
 import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, UniversityProgramme, ViewApplicationRedirectDTO }
 import ro.campuscompass.global.domain.University
 import ro.campuscompass.global.domain.error.StudentError
-import ro.campuscompass.global.httpserver.api.model.{ StudentApplicationDTO, ViewApplicationDTO }
+import ro.campuscompass.global.httpserver.api.model.{ StudentApplicationDTO, StudentDataDTO, ViewApplicationDTO }
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -26,7 +26,9 @@ object StudentEndpoints {
       listAppliedProgrammesEndpoint,
       viewApplicationEndpoint,
       listUniversitiesEndpoint,
-      listAppliedUniverstitiesEndpoint
+      listAppliedUniverstitiesEndpoint,
+      setStudentDetailsEndpoint,
+      getStudentDetailsEndpoint
     ).map(_.tag(STUDENT_TAG))
 
   private val baseStudentEndpoint = endpoint
@@ -62,6 +64,14 @@ object StudentEndpoints {
           statusCode(StatusCode.BadRequest)
             .and(jsonBody[StudentError.ApplicationNotFound])
         ),
+        oneOfVariant(
+          statusCode(StatusCode.BadRequest)
+            .and(jsonBody[StudentError.StudentDataExists])
+        ),
+        oneOfVariant(
+          statusCode(StatusCode.BadRequest)
+            .and(jsonBody[StudentError.StudentDataDoesNotExist])
+        )
       )
     )
 
@@ -92,4 +102,18 @@ object StudentEndpoints {
 
   val listAppliedUniverstitiesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError, List[University], Any] =
     baseStudentEndpoint.get.in("applied-universities").in(emptyInput).out(jsonBody[List[University]])
+
+  val setStudentDetailsEndpoint: Endpoint[AuthToken, StudentDataDTO, AuthError | StudentError, Unit, Any] =
+    baseStudentEndpoint
+      .post
+      .in("details")
+      .in(jsonBody[StudentDataDTO])
+      .out(emptyOutput)
+
+  val getStudentDetailsEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError, StudentDataDTO, Any] =
+    baseStudentEndpoint
+      .get
+      .in("details")
+      .in(emptyInput)
+      .out(jsonBody[StudentDataDTO])
 }

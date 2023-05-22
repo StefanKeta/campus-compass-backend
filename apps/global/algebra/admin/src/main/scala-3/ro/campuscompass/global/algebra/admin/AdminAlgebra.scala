@@ -42,8 +42,9 @@ object AdminAlgebra extends Logging {
     override def confirmExistence(universityId: UUID): F[Unit] = for {
       _        <- logger.info(s"Confirming university with $universityId...")
       maybeUni <- universityRepository.find(universityId)
+      _        <- logger.info(s"Found university: $maybeUni")
       university <- maybeUni match
-        case Some(uni) => ApplicativeThrow[F].pure(uni)
+        case Some(uni) => Applicative[F].pure(uni)
         case None      => ApplicativeThrow[F].raiseError(UniversityNotFound(s"University with id: $universityId does not exist!"))
       isConfirmed <- universityRepository.isConfirmed(universityId)
       _ <- isConfirmed match
@@ -56,10 +57,10 @@ object AdminAlgebra extends Logging {
             uniId <- createUniversityUser(universityId)
             _     <- universityFirebaseRepository.persistUniversity(UniversityFirebase(uniId, university.name))
           } yield ()
-        case None =>
-          ApplicativeThrow[F].raiseError(UniversityNotFound(s"University with id: $universityId does not exist!")) *> logger.info(
-            s"University $universityId does not exist!"
-          )
+        case None => for {
+            uniId <- createUniversityUser(universityId)
+            _     <- universityFirebaseRepository.persistUniversity(UniversityFirebase(uniId, university.name))
+          } yield ()
     } yield ()
 
     override def rejectUniversityApplication(universityId: UUID): F[Unit] = for {

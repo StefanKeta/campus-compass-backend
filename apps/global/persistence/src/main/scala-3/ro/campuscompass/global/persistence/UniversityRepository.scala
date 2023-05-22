@@ -12,7 +12,9 @@ import java.util.UUID
 trait UniversityRepository[F[_]] {
   def insert(university: University): F[Unit]
 
-  def find(_id: UUID): F[Option[University]]
+  def find(universityId: UUID): F[Option[University]]
+
+  def findByEmail(email: String): F[Option[University]]
 
   def findAll(): F[List[University]]
 
@@ -37,14 +39,17 @@ object UniversityRepository {
     override def findAll(): F[List[University]] =
       docs.flatMap(_.find.all).map(_.toList.map(_.domain))
 
-    override def find(_id: UUID): F[Option[University]] =
-      docs.flatMap(_.find(Filter.eq("_id", _id)).first.map(_.map(_.domain)))
+    override def find(universityId: UUID): F[Option[University]] =
+      docs.flatMap(_.find(Filter.eq[String]("_id", universityId.toString)).first.map(_.map(_.domain)))
+
+    override def findByEmail(email: String): F[Option[University]] =
+      docs.flatMap(_.find(Filter.eq("email", email)).first).map(_.map(_.domain))
 
     override def findCoordinatesByUserId(userId: UUID): F[Option[Coordinates]] =
-      docs.flatMap(_.find(Filter.eq("userId", userId)).first.map(_.map(_.coordinates)))
+      docs.flatMap(_.find(Filter.eq("userId", userId.toString)).first.map(_.map(_.coordinates)))
 
     override def updateUserId(_id: UUID, userId: UUID): F[Unit] =
-      docs.flatMap(_.updateOne(Filter.eq("_id", _id), Update.set("userId", Some(userId))).void)
+      docs.flatMap(_.updateOne(Filter.eq("_id", _id.toString), Update.set("userId", userId.toString)).void)
 
     override def isConfirmed(_id: UUID): F[Option[Boolean]] =
       docs.flatMap(_.find(Filter.eq("_id", _id)).first.map(_.map(_.userId.isDefined)))

@@ -8,13 +8,14 @@ import org.http4s.client.Client
 import org.typelevel.log4cats.Logger
 import ro.campuscompass.common.logging.Logging
 import ro.campuscompass.global.client.api.model.request.ViewApplicationReqDTO
-import ro.campuscompass.global.domain.{ Coordinates, StudentApplication, University }
+import ro.campuscompass.global.domain.{ Coordinates, StudentApplication, StudentData, University }
 import ro.campuscompass.global.domain.error.StudentError.AlreadyAppliedToUniversity
-import ro.campuscompass.global.persistence.{ StudentApplicationRepository, UniversityRepository }
+import ro.campuscompass.global.persistence.{ StudentApplicationRepository, StudentDataRepository, UniversityRepository }
 import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, UniversityProgramme, ViewApplicationRedirectDTO }
 import ro.campuscompass.global.client.client.StudentRegionalClient
 import ro.campuscompass.global.client.config.RegionalConfig
 import ro.campuscompass.global.domain.error.AdminError.UniversityNotFound
+import ro.campuscompass.global.domain.error.StudentError
 import ro.campuscompass.global.domain.error.StudentError.*
 
 import java.util.UUID
@@ -26,11 +27,14 @@ trait StudentAlgebra[F[_]] {
   def viewApplication(studentId: UUID, universityId: UUID, applicationId: UUID): F[ViewApplicationRedirectDTO]
   def listUniversities(): F[List[University]]
   def listAppliedUniversities(userId: UUID): F[List[University]]
+  def getStudentData(studentId: UUID): F[StudentData]
+  def setStudentData(studentUserId: UUID, studentData: StudentData): F[Unit]
 }
 
 object StudentAlgebra extends Logging {
   def apply[F[_]: Sync](
     applicationRepository: StudentApplicationRepository[F],
+    studentRepository: StudentDataRepository[F],
     universityRepository: UniversityRepository[F],
     client: StudentRegionalClient[F],
     regionalConfig: RegionalConfig
@@ -69,6 +73,19 @@ object StudentAlgebra extends Logging {
         universityIds = applications.map(_.programmeId)
         universitiesApplied <- universityRepository.findByIds(universityIds)
       } yield universitiesApplied
+
+      override def setStudentData(studentUserId: UUID, studentData: StudentData): F[Unit] =
+        studentRepository.findById(studentUserId).flatMap {
+          case Some(data) =>
+            ApplicativeThrow[F].raiseError(
+              StudentError.StudentDataExists(s"Student with id: $studentUserId already has data defined!")
+            )
+          case None => studentRepository.insert(studentUserId, studentData)
+        }
+
+      override def getStudentData(studentId: UUID): F[StudentData] = studentRepository.findById(studentId).flatMap { maybeData =>
+        ApplicativeThrow[F].fromOption(maybeData, StudentDataDoesNotExist(s"Student with $studentId does not have defined data"))
+      }
 
       private def identifyNode(universityUserId: UUID) = for {
         coordinates <- universityRepository.findCoordinatesByUserId(universityUserId).flatMap(maybeCoord =>
