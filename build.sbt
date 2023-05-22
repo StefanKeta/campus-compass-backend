@@ -349,3 +349,4 @@ lazy val regionalPersistence =
   regionalModule("persistence")
     .dependsOn(commonMongo)
     .dependsOn(regionalDomain)
+    .dependsOn(commonFirebase)

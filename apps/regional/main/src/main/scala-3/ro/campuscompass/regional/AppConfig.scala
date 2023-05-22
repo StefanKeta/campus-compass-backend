@@ -7,6 +7,7 @@ import pureconfig.generic.derivation.default.*
 import pureconfig.module.catseffect.syntax.*
 import ro.campuscompass.common.crypto.JwtConfig
 import ro.campuscompass.common.email.EmailConfig
+import ro.campuscompass.common.firebase.FirebaseConfig
 import ro.campuscompass.common.http.ServerConfig
 import ro.campuscompass.common.minio.MinIOConfig
 import ro.campuscompass.common.mongo.MongoDBConfig
@@ -19,7 +20,8 @@ final case class AppConfig(
   email: EmailConfig,
   mongo: MongoDBConfig,
   redis: RedisConfig,
-  jwt: JwtConfig
+  jwt: JwtConfig,
+  firebase: FirebaseConfig
 ) derives ConfigReader
 
 object AppConfig {

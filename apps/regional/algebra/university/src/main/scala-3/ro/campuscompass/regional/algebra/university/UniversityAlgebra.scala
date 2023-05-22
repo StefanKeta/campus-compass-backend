@@ -21,6 +21,7 @@ trait UniversityAlgebra[F[_]] {
 
 object UniversityAlgebra {
   def apply[F[_]: Async: Random](
+    housingRepository: HousingCredentialsFirebaseRepository[F],
     emailAlgebra: EmailAlgebra[F],
     housingTemplate: HousingCredentialsTemplate,
     programRepository: ProgramRepository[F],
@@ -53,6 +54,12 @@ object UniversityAlgebra {
             for {
               user     <- List.fill(6)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
               password <- List.fill(8)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
+              _ <- housingRepository.insert(HousingCredentials(
+                studentId    = app.studentId,
+                credentials  = Credentials(user, password),
+                universityId = universityId
+              ))
+              _ <- applicationRepository.updateSentCredentials(app._id, Some(true))
               _ <- emailAlgebra.send(
                 EmailRequest(
                   EmailAddress.unsafe(emailAlgebra.config.sender),
@@ -61,7 +68,7 @@ object UniversityAlgebra {
                   Content(housingTemplate(user, password, emailAlgebra.config.sender))
                 )
               )
-              _ <- applicationRepository.updateSentCredentials(app._id, Some(true))
+
             } yield ()
           }
           .compile
