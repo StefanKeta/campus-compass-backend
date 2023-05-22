@@ -51,15 +51,13 @@ def campusCompassModule(path: List[String], baseDir: Option[String] = None): Pro
   val base = path.foldLeft(file(baseDir.getOrElse("."))) { (dir, file) => dir / file }
 
   Project(id = id, base = base)
-    .enablePlugins(UniversalPlugin)
     .settings(sharedSettings)
     .settings(
       initialize := {
         val _ = initialize.value
         if (!allProjects.exists(_.id == id))
           sys.error(s"Sub-project `$id` was not declared in `allProjects`")
-      },
-      Universal / mappings += (sourceDirectory.value / "main" / "resources", "")
+      }
     )
 }
 

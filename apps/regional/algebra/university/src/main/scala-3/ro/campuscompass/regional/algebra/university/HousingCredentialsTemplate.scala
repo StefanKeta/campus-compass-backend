@@ -14,6 +14,6 @@ class HousingCredentialsTemplate(template: String) {
 
 object HousingCredentialsTemplate {
   def apply[F[_]: Async]: F[HousingCredentialsTemplate] =
-    FileUtils.readTextFromFile("housing-credentials-template.html")
+    FileUtils.readTextFromResource("housing-credentials-template.html")
       .map(new HousingCredentialsTemplate(_))
 }
