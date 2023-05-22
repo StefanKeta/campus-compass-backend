@@ -21,5 +21,5 @@ object StudentDataRepository {
       docs.flatMap(_.insertOne(StudentDataRep(studentId, studentData)).void)
 
     override def findById(studentId: UUID): F[Option[StudentData]] =
-      docs.flatMap(_.find(Filter.eq("_id", studentId.toString)).first).map(_.map(_.domain()))
+      docs.flatMap(_.find(Filter.eq("_id", s"$studentId")).first).map(_.map(_.domain()))
 }

@@ -40,16 +40,16 @@ object UniversityRepository {
       docs.flatMap(_.find.all).map(_.toList.map(_.domain))
 
     override def find(universityId: UUID): F[Option[University]] =
-      docs.flatMap(_.find(Filter.eq[String]("_id", universityId.toString)).first.map(_.map(_.domain)))
+      docs.flatMap(_.find(Filter.eq("_id", s"$universityId")).first.map(_.map(_.domain)))
 
     override def findByEmail(email: String): F[Option[University]] =
       docs.flatMap(_.find(Filter.eq("email", email)).first).map(_.map(_.domain))
 
     override def findCoordinatesByUserId(userId: UUID): F[Option[Coordinates]] =
-      docs.flatMap(_.find(Filter.eq("userId", userId.toString)).first.map(_.map(_.coordinates)))
+      docs.flatMap(_.find(Filter.eq("userId", s"$userId")).first.map(_.map(_.coordinates)))
 
     override def updateUserId(_id: UUID, userId: UUID): F[Unit] =
-      docs.flatMap(_.updateOne(Filter.eq("_id", _id.toString), Update.set("userId", userId.toString)).void)
+      docs.flatMap(_.updateOne(Filter.eq("_id", s"$_id"), Update.set("userId", s"$userId")).void)
 
     override def isConfirmed(_id: UUID): F[Option[Boolean]] =
       docs.flatMap(_.find(Filter.eq("_id", _id)).first.map(_.map(_.userId.isDefined)))
