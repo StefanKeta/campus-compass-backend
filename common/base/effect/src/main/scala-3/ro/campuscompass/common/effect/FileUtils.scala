@@ -4,8 +4,8 @@ import cats.effect.*
 
 import java.io.*
 import java.nio.charset.StandardCharsets
+import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{FileVisitResult, FileVisitor, Files, Path}
 
 object FileUtils {
   /**
@@ -27,7 +27,13 @@ object FileUtils {
    * Reads text from resource.
    */
   def readTextFromResource[F[_]: Async](resourceName: String, loader: Option[ClassLoader] = None): F[String] =
-    readTextFromFile(loader.getOrElse(getClass.getClassLoader).getResource(resourceName).getPath)
+    fs2.io.readInputStream[F](
+      Sync[F].delay(loader.getOrElse(getClass.getClassLoader).getResourceAsStream(resourceName)),
+      chunkSize = 1024
+    )
+      .through(fs2.text.utf8.decode)
+      .compile
+      .string
 
   def writeTextToFile[F[_]: Async](file: File, content: String): F[Unit] =
     fs2.Stream.emits(content.getBytes)
