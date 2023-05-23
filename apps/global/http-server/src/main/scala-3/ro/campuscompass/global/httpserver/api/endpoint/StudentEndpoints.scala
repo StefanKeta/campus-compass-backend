@@ -7,7 +7,13 @@ import ro.campuscompass.common.domain.error.AuthError
 import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, UniversityProgramme, ViewApplicationRedirectDTO }
 import ro.campuscompass.global.domain.University
 import ro.campuscompass.global.domain.error.StudentError
-import ro.campuscompass.global.httpserver.api.model.{ StudentApplicationDTO, StudentDataDTO, ViewApplicationDTO }
+import ro.campuscompass.global.httpserver.api.model.{
+  AppliedProgrammeGlobalDTO,
+  StudentApplicationDTO,
+  StudentDataDTO,
+  UniversityProgrammeGlobalDTO,
+  ViewApplicationDTO
+}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -81,15 +87,15 @@ object StudentEndpoints {
       .in(jsonBody[StudentApplicationDTO])
       .out(emptyOutput)
 
-  val listProgrammesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError, List[UniversityProgramme], Any] =
+  val listProgrammesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError, List[UniversityProgrammeGlobalDTO], Any] =
     baseStudentEndpoint.get
       .in("programmes")
-      .out(jsonBody[List[UniversityProgramme]])
+      .out(jsonBody[List[UniversityProgrammeGlobalDTO]])
 
-  val listAppliedProgrammesEndpoint: Endpoint[AuthToken, UUID, AuthError | StudentError, List[AppliedProgramme], Any] =
+  val listAppliedProgrammesEndpoint: Endpoint[AuthToken, UUID, AuthError | StudentError, List[AppliedProgrammeGlobalDTO], Any] =
     baseStudentEndpoint.get
       .in("programmes" / path[UUID]("studentId"))
-      .out(jsonBody[List[AppliedProgramme]])
+      .out(jsonBody[List[AppliedProgrammeGlobalDTO]])
 
   val viewApplicationEndpoint
     : Endpoint[AuthToken, ViewApplicationDTO, AuthError | StudentError, ViewApplicationRedirectDTO, Any] =

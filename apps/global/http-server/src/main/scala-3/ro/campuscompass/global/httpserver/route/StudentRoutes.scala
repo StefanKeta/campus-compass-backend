@@ -4,13 +4,18 @@ import cats.effect.Async
 import cats.effect.std.UUIDGen
 import cats.implicits.*
 import ro.campuscompass.common.crypto.JWT
-import ro.campuscompass.common.domain.{AuthToken, Role}
+import ro.campuscompass.common.domain.{ AuthToken, Role }
 import ro.campuscompass.common.http.Routes
 import ro.campuscompass.global.algebra.auth.AuthAlgebra
 import ro.campuscompass.global.algebra.student.StudentAlgebra
 import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints
 import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints.*
-import ro.campuscompass.global.httpserver.api.model.{StudentApplicationDTO, StudentDataDTO}
+import ro.campuscompass.global.httpserver.api.model.{
+  AppliedProgrammeGlobalDTO,
+  StudentApplicationDTO,
+  StudentDataDTO,
+  UniversityProgrammeGlobalDTO
+}
 import sttp.tapir.AnyEndpoint
 
 import java.util.UUID
@@ -41,12 +46,12 @@ class StudentRoutes[F[_]: Async](authAlgebra: AuthAlgebra[F], studentAlgebra: St
 
   private val listProgrammesRoute =
     listProgrammesEndpoint.serverSecurityLogicRecoverErrors(handleAuthentication).serverLogicRecoverErrors(_ =>
-      _ => studentAlgebra.listProgrammes()
+      _ => studentAlgebra.listProgrammes().map(_.map(prg => UniversityProgrammeGlobalDTO(prg)))
     )
 
   private val listAppliedProgrammesRoute =
     listAppliedProgrammesEndpoint.serverSecurityLogicRecoverErrors(handleAuthentication).serverLogicRecoverErrors(_ =>
-      studentAlgebra.listAppliedProgrammes
+      studentAlgebra.listAppliedProgrammes(_).map(_.map(app => AppliedProgrammeGlobalDTO(app)))
     )
 
   private val viewApplicationRoute =
@@ -66,7 +71,7 @@ class StudentRoutes[F[_]: Async](authAlgebra: AuthAlgebra[F], studentAlgebra: St
 
   private val setStudentDetailsRoute = setStudentDetailsEndpoint
     .serverSecurityLogicRecoverErrors(handleAuthentication).serverLogicRecoverErrors(studentUserId =>
-      studentData => studentAlgebra.setStudentData(studentUserId,studentData.domain())
+      studentData => studentAlgebra.setStudentData(studentUserId, studentData.domain())
     )
 
   private val getStudentDetailsRoute = getStudentDetailsEndpoint

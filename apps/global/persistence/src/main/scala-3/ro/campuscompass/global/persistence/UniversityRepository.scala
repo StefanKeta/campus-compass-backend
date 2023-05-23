@@ -14,6 +14,8 @@ trait UniversityRepository[F[_]] {
 
   def find(universityId: UUID): F[Option[University]]
 
+  def findByUserId(uniUserId: UUID): F[Option[University]]
+
   def findByEmail(email: String): F[Option[University]]
 
   def findAll(): F[List[University]]
@@ -40,7 +42,10 @@ object UniversityRepository {
       docs.flatMap(_.find.all).map(_.toList.map(_.domain))
 
     override def find(universityId: UUID): F[Option[University]] =
-      docs.flatMap(_.find(Filter.eq("_id", s"$universityId")).first.map(_.map(_.domain)))
+      docs.flatMap(_.find(Filter.eq[String]("_id", s"$universityId")).first.map(_.map(_.domain)))
+
+    override def findByUserId(uniUserId: UUID): F[Option[University]] =
+      docs.flatMap(_.find(Filter.eq("userId", s"$uniUserId")).first.map(_.map(_.domain)))
 
     override def findByEmail(email: String): F[Option[University]] =
       docs.flatMap(_.find(Filter.eq("email", email)).first).map(_.map(_.domain))

@@ -4,12 +4,12 @@ import java.time.Instant
 import java.util.UUID
 
 final case class StudentData(
-  firstName: String,
-  lastName: String,
-  dob: Instant,
-  email: String,
-  phone: String,
-  language: String,
-  address: Address,
-  degree: Degree
+  firstName: Option[String],
+  lastName: Option[String],
+  dob: Option[Instant],
+  email: Option[String],
+  phone: Option[String],
+  language: Option[String],
+  address: Option[Address],
+  degree: Option[Degree]
 )

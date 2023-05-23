@@ -8,7 +8,14 @@ import org.http4s.client.Client
 import org.typelevel.log4cats.Logger
 import ro.campuscompass.common.logging.Logging
 import ro.campuscompass.global.client.api.model.request.ViewApplicationReqDTO
-import ro.campuscompass.global.domain.{ Coordinates, StudentApplication, StudentData, University }
+import ro.campuscompass.global.domain.{
+  AppliedProgrammeGlobal,
+  Coordinates,
+  StudentApplication,
+  StudentData,
+  University,
+  UniversityProgrammeGlobal
+}
 import ro.campuscompass.global.domain.error.StudentError.AlreadyAppliedToUniversity
 import ro.campuscompass.global.persistence.{ StudentApplicationRepository, StudentDataRepository, UniversityRepository }
 import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, UniversityProgramme, ViewApplicationRedirectDTO }
@@ -22,8 +29,8 @@ import java.util.UUID
 
 trait StudentAlgebra[F[_]] {
   def applyToProgramme(studentApplication: StudentApplication): F[Unit]
-  def listProgrammes(): F[List[UniversityProgramme]]
-  def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgramme]]
+  def listProgrammes(): F[List[UniversityProgrammeGlobal]]
+  def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgrammeGlobal]]
   def viewApplication(studentId: UUID, universityId: UUID, applicationId: UUID): F[ViewApplicationRedirectDTO]
   def listUniversities(): F[List[University]]
   def listAppliedUniversities(userId: UUID): F[List[University]]
@@ -52,18 +59,54 @@ object StudentAlgebra extends Logging {
 
       } yield ()
 
-      override def listProgrammes(): F[List[UniversityProgramme]] = client.listProgrammes()
+      override def listProgrammes(): F[List[UniversityProgrammeGlobal]] = for {
+        programmes <- client.listProgrammes()
+        res <- programmes.traverse(programme =>
+          for {
+            university <- universityRepository.find(programme.uniUserId)
+            programme <- ApplicativeThrow[F].fromOption(
+              university,
+              UniversityNotFound(s"University with userId ${programme.uniUserId}")
+            ).map(uni =>
+              UniversityProgrammeGlobal(
+                uniUserId      = programme.uniUserId,
+                programmeName  = programme.programmeName,
+                degreeType     = programme.degreeType,
+                universityName = uni.name
+              )
+            )
+          } yield programme
+        )
+      } yield res
 
-      override def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgramme]] = client.listAppliedProgrammes(studentId)
+      override def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgrammeGlobal]] =
+        for {
+          programmes <- client.listAppliedProgrammes(studentId)
+          res <- programmes.traverse(programme =>
+            for {
+              university <- universityRepository.find(programme.uniUserId)
+              programme <- ApplicativeThrow[F].fromOption(
+                university,
+                UniversityNotFound(s"University with userId ${programme.uniUserId}")
+              ).map(uni =>
+                AppliedProgrammeGlobal(
+                  uniUserId      = programme.uniUserId,
+                  applicationId  = programme.applicationId,
+                  name           = programme.name,
+                  degreeType     = programme.degreeType,
+                  universityName = uni.name
+                )
+              )
+            } yield programme
+          )
+        } yield res
 
       override def viewApplication(studentId: UUID, universityId: UUID, applicationId: UUID): F[ViewApplicationRedirectDTO] =
         for {
-          node          <- identifyNode(universityId)
-          maybeRedirect <- client.viewApplication(ViewApplicationReqDTO(studentId, applicationId), node)
-          redirect <- ApplicativeThrow[F].fromOption(
-            maybeRedirect,
-            ApplicationNotFound(s"The application with $applicationId does not exist!")
-          )
+          node <- identifyNode(universityId)
+          redirect <- client.viewApplication(ViewApplicationReqDTO(studentId, applicationId), node).recoverWith {
+            case _ => ApplicativeThrow[F].raiseError(ApplicationNotFound(s"the application with id $applicationId not found!"))
+          }
         } yield redirect
 
       override def listUniversities(): F[List[University]] = universityRepository.findAll()
