@@ -15,7 +15,7 @@ import ro.campuscompass.global.client.api.model.request.UniversityLoginRequestDT
 import ro.campuscompass.global.domain.Node
 import ro.campuscompass.global.client.client
 import ro.campuscompass.global.client.api.model.response.StudyProgramDTO
-import ro.campuscompass.global.client.config.{ApiKeyConfig, RegionalConfig, RegionalHostsConfig}
+import ro.campuscompass.global.client.config.{ ApiKeyConfig, RegionalConfig }
 
 import java.util.UUID
 
@@ -28,14 +28,13 @@ object UniversityRegionalClient {
   def apply[F[_]: Concurrent](
     client: Client[F],
     regionalConfig: RegionalConfig,
-    hostsConfig: RegionalHostsConfig,
     apiKeyConfig: ApiKeyConfig
   ) =
     new UniversityRegionalClient[F]:
       implicit val key: String = apiKeyConfig.key
       override def generateUniversityUserJwt(userId: UUID, node: Node): F[JWT] = for {
         request <- Applicative[F].pure(request[F, UUID](
-          s"${node.host}.${hostsConfig.studentBE}/authorize/university/$userId",
+          s"${node.be}/api/v1/authorize/university/$userId",
           method = Method.POST,
           entity = userId
         ))
@@ -43,16 +42,16 @@ object UniversityRegionalClient {
       } yield jwt
 
       override def listProgrammes(): F[List[StudyProgramDTO]] = regionalConfig.nodes.map(node =>
-        val req = request[F, Unit](path = s"${node.host}.${hostsConfig.universityBE}/program")
+        val req = request[F, Unit](path = s"${node.be}/api/v1/program")
         expectResponse[F, List[StudyProgramDTO]](client, req)
       ).sequence.map(_.flatten)
 
-//      private def request(host: String, uri: String, path: String) =
-//        Request[F](method = Method.GET, Uri.unsafeFromString(s"$host.$uri/$path"))
-
-      def jwtRequest(universityLoginRequestDTO: UniversityLoginRequestDTO, node: Node) =
-        Request[F](
-          uri     = Uri.unsafeFromString(s"http://${node.host}.{${hostsConfig.universityBE}" + "authorize/university"),
-          headers = Headers(Header.Raw(CIString("X-Regional-Api-Key"), "apikey"))
-        ).withEntity(universityLoginRequestDTO)
+////      private def request(host: String, uri: String, path: String) =
+////        Request[F](method = Method.GET, Uri.unsafeFromString(s"$host.$uri/$path"))
+//
+//      def jwtRequest(universityLoginRequestDTO: UniversityLoginRequestDTO, node: Node) =
+//        Request[F](
+//          uri     = Uri.unsafeFromString(s"http://${node.host}.{${hostsConfig.universityBE}" + "authorize/university"),
+//          headers = Headers(Header.Raw(CIString("X-Regional-Api-Key"), "apikey"))
+//        ).withEntity(universityLoginRequestDTO)
 }

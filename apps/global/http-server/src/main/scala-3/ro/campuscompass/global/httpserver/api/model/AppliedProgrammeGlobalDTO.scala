@@ -4,7 +4,7 @@ import ro.campuscompass.global.domain.{ AppliedProgrammeGlobal, DegreeType }
 
 import java.util.UUID
 
-case class AppliedProgrammeGlobalDTO(
+final case class AppliedProgrammeGlobalDTO(
   uniUserId: UUID,
   applicationId: UUID,
   name: String,

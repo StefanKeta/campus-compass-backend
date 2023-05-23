@@ -5,7 +5,7 @@ import ro.campuscompass.global.domain.{ DegreeType, UniversityProgrammeGlobal }
 import java.util.UUID
 import scala.annotation.tailrec
 
-case class UniversityProgrammeGlobalDTO(
+final case class UniversityProgrammeGlobalDTO(
   uniUserId: UUID,
   programmeName: String,
   degreeType: DegreeType,

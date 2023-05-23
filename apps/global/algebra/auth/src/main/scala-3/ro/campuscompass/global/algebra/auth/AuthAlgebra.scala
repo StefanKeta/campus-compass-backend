@@ -22,7 +22,7 @@ import ro.campuscompass.global.domain.{ Coordinates, LoginResponseDTO, User }
 import ro.campuscompass.global.persistence.{ UniversityRepository, UserRepository }
 import ro.campuscompass.global.domain.User
 import ro.campuscompass.global.client.client.UniversityRegionalClient
-import ro.campuscompass.global.client.config.{ RegionalConfig, RegionalHostsConfig }
+import ro.campuscompass.global.client.config.RegionalConfig
 import ro.campuscompass.global.persistence.UserRepository
 
 import java.time.Instant
@@ -44,7 +44,6 @@ object AuthAlgebra extends Logging {
     universityRegionalClient: UniversityRegionalClient[F],
     jwtConfig: JwtConfig,
     regionalConfig: RegionalConfig,
-    regionalHostsConfig: RegionalHostsConfig
   ) = new AuthAlgebra[F]:
 
     override def login(username: String, password: String): F[LoginResponseDTO] = for {
@@ -100,14 +99,10 @@ object AuthAlgebra extends Logging {
       case University => for {
           node                 <- identifyNode(user._id)
           universityJwt        <- universityRegionalClient.generateUniversityUserJwt(user._id, node)
-          regionalToRedirectTo <- regionalToRedirectTo(node.host)
-        } yield LoginResponseDTO(universityJwt, Some(regionalToRedirectTo))
+        } yield LoginResponseDTO(universityJwt, Some(node.fe))
       case _ => for {
           jwt <- createJWT(user)
         } yield LoginResponseDTO(jwt,None)
-
-    private def regionalToRedirectTo(nodeHost: String): F[String] =
-      Applicative[F].pure(s"$nodeHost.${regionalHostsConfig.regionalFE}")
 
     private def identifyNode(universityUserId: UUID) = for {
       coordinates <- universityRepository.findCoordinatesByUserId(universityUserId).flatMap(maybeCoord =>

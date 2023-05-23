@@ -12,7 +12,7 @@ import ro.campuscompass.common.http.ServerConfig
 import ro.campuscompass.common.mongo.MongoDBConfig
 import ro.campuscompass.common.redis.RedisConfig
 import ro.campuscompass.global.algebra.admin.AdminConfig
-import ro.campuscompass.global.client.config.{ApiKeyConfig, RegionalConfig, RegionalHostsConfig}
+import ro.campuscompass.global.client.config.{ApiKeyConfig, RegionalConfig}
 
 final case class AppConfig(
   server: ServerConfig,
@@ -22,7 +22,6 @@ final case class AppConfig(
   redis: RedisConfig,
   jwt: JwtConfig,
   regional: RegionalConfig,
-  regionalHosts: RegionalHostsConfig,
   apiKey: ApiKeyConfig,
   firebase: FirebaseConfig
 ) derives ConfigReader

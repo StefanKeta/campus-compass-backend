@@ -57,9 +57,9 @@ object GlobalApp extends Logging {
     }
 
     universityRegionalClient <-
-      Resource.pure(UniversityRegionalClient[F](client, config.regional, config.regionalHosts, config.apiKey))
+      Resource.pure(UniversityRegionalClient[F](client, config.regional, config.apiKey))
     studentRegionalClient <-
-      Resource.pure(StudentRegionalClient[F](client, config.regional, config.regionalHosts, config.apiKey))
+      Resource.pure(StudentRegionalClient[F](client, config.regional, config.apiKey))
 
     emailAlgebra <- Resource.eval(SMTPEmailInterpreter[F](config.email))
 
@@ -73,7 +73,6 @@ object GlobalApp extends Logging {
         universityRegionalClient,
         config.jwt,
         config.regional,
-        config.regionalHosts
       ))
     universityAlgebra <- Resource.pure(UniversityAlgebra[F](universityRepository))
     studentAlgebra <- Resource.pure(StudentAlgebra[F](

@@ -15,7 +15,7 @@ import ro.campuscompass.common.crypto.JWT
 import ro.campuscompass.global.client.*
 import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, UniversityProgramme, ViewApplicationRedirectDTO }
 import ro.campuscompass.global.client.api.model.request.{ ListAppliedProgrammesReqDTO, ViewApplicationReqDTO }
-import ro.campuscompass.global.client.config.{ ApiKeyConfig, RegionalConfig, RegionalHostsConfig }
+import ro.campuscompass.global.client.config.{ ApiKeyConfig, RegionalConfig }
 import ro.campuscompass.global.domain.{ Node, StudentApplication }
 import sttp.tapir.*
 
@@ -32,7 +32,6 @@ object StudentRegionalClient {
   def apply[F[_]: Async](
     client: Client[F],
     regionalConfig: RegionalConfig,
-    hostsConfig: RegionalHostsConfig,
     apiKeyConfig: ApiKeyConfig
   ) =
     new StudentRegionalClient[F]:
@@ -42,7 +41,7 @@ object StudentRegionalClient {
         expectResponse[F, Option[UUID]](
           client,
           request[F, StudentApplication](
-            s"${node.host}.${hostsConfig.studentBE}/student/apply/${studentApplication.programmeId}",
+            s"${node.be}/api/v1/student/apply/${studentApplication.programmeId}",
             entity = studentApplication
           ),
         )
@@ -50,7 +49,7 @@ object StudentRegionalClient {
       override def listProgrammes(): F[List[UniversityProgramme]] = regionalConfig.nodes.map { node =>
         expectResponse[F, List[UniversityProgramme]](
           client,
-          request[F, Unit](s"${node.host}.${hostsConfig.studentBE}/student/apply/programmes")
+          request[F, Unit](s"${node.be}/api/v1/student/apply/programmes")
         )
       }.sequence.map(_.flatten)
 
@@ -58,7 +57,7 @@ object StudentRegionalClient {
         expectResponse[F, List[AppliedProgramme]](
           client,
           request[F, ListAppliedProgrammesReqDTO](
-            s"${node.host}.${hostsConfig.studentBE}/student/applications/$studentId",
+            s"${node.be}/api/v1/student/applications/$studentId",
             entity = ListAppliedProgrammesReqDTO(studentId)
           )
         )
@@ -69,11 +68,9 @@ object StudentRegionalClient {
           jwt <- expectResponse[F, JWT](
             client,
             request[F, ViewApplicationReqDTO](
-              s"${node.host}.${hostsConfig.studentBE}/student/applications/",
+              s"${node.be}/api/v1/student/applications",
               entity = viewApplication
             )
           )
-          redirectTo =
-            s"${node.host}.${hostsConfig.regionalFE}/application/${viewApplication.studentId}/${viewApplication.applicationId}"
-        } yield ViewApplicationRedirectDTO(jwt, redirectTo)
+        } yield ViewApplicationRedirectDTO(jwt, node.fe)
 }
