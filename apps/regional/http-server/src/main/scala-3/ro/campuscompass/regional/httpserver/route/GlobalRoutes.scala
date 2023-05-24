@@ -3,13 +3,13 @@ package ro.campuscompass.regional.httpserver.route
 import cats.*
 import cats.effect.implicits.*
 import cats.implicits.*
-import ro.campuscompass.common.domain.{AuthToken, StudyProgramDTO}
+import ro.campuscompass.common.domain.{ AuthToken, StudyProgramDTO }
 import ro.campuscompass.common.domain.error.*
 import ro.campuscompass.common.http.Routes
 import ro.campuscompass.regional.algebra.application.ApplicationAlgebra
 import ro.campuscompass.regional.algebra.authorization.AuthorizationAlgebra
 import ro.campuscompass.regional.algebra.university.UniversityAlgebra
-import ro.campuscompass.regional.domain.{AuthError, *}
+import ro.campuscompass.regional.domain.{ AuthError, * }
 import ro.campuscompass.regional.httpserver.api.endpoint.GlobalEndpoints
 import ro.campuscompass.regional.httpserver.api.model.*
 import sttp.tapir.AnyEndpoint
@@ -72,20 +72,25 @@ class GlobalRoutes[F[_]: MonadThrow](
         AuthError.Unauthorized("Invalid API key")
       )
     )
-    .serverLogicRecoverErrors(_ =>
-      dto =>
-        applicationAlgebra.createApplication(Application(
-          _id = UUID.randomUUID(),
-          studentId = dto.studentId,
-          programId = dto.programId,
-          zipFile = None,
-          status = ApplicationStatus.InProcess,
-          housing = false,
+    .serverLogicRecoverErrors { _ => dto =>
+      for {
+        uni <- universityAlgebra.programs(None)
+        programmeName <-
+          MonadThrow[F].fromOption(uni.find(_._id == dto.programId), GenericError("Programme not found")).map(_.name)
+        res <- applicationAlgebra.createApplication(Application(
+          _id                    = UUID.randomUUID(),
+          studentId              = dto.studentId,
+          programId              = dto.programId,
+          programName            = programmeName,
+          zipFile                = None,
+          status                 = ApplicationStatus.InProcess,
+          housing                = false,
           sentHousingCredentials = None,
-          timestamp = Instant.now(),
-          studentData = dto.studentData
+          timestamp              = Instant.now(),
+          studentData            = dto.studentData
         ))
-    )
+      } yield res
+    }
 
   private val listApplicationsRoute = listApplications
     .serverSecurityLogicRecoverErrors {

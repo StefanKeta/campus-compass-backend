@@ -67,7 +67,7 @@ object StudentAlgebra extends Logging {
                 uniUserId      = programme.universityId,
                 programmeName  = programme.name,
                 degreeType     = programme.kind,
-                language     = programme.language,
+                language       = programme.language,
                 universityName = uni.name
               )
             )
@@ -118,13 +118,7 @@ object StudentAlgebra extends Logging {
       } yield universitiesApplied
 
       override def setStudentData(studentUserId: UUID, studentData: StudentData): F[Unit] =
-        studentRepository.findById(studentUserId).flatMap {
-          case Some(data) =>
-            ApplicativeThrow[F].raiseError(
-              StudentError.StudentDataExists(s"Student with id: $studentUserId already has data defined!")
-            )
-          case None => studentRepository.insert(studentUserId, studentData)
-        }
+        studentRepository.insert(studentUserId, studentData)
 
       override def getStudentData(studentId: UUID): F[StudentData] = studentRepository.findById(studentId).flatMap { maybeData =>
         ApplicativeThrow[F].fromOption(maybeData, StudentDataDoesNotExist(s"Student with $studentId does not have defined data"))
