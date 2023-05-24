@@ -22,7 +22,13 @@ class UniversityRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], univers
   override def endpoints: List[AnyEndpoint] = UniversityEndpoints()
 
   override def routes: List[ServerEndpoint[Any, F]] =
-    List(createProgramRoute, listUniversityProgramsRoute, listUniversityApplicationsRoute, updateApplicationStatusRoute, listUniversityHousingRequestsRoute)
+    List(
+      createProgramRoute,
+      listUniversityProgramsRoute,
+      listUniversityApplicationsRoute,
+      updateApplicationStatusRoute,
+      listUniversityHousingRequestsRoute
+    )
 
   private val createProgramRoute = createProgram
     .serverSecurityLogicRecoverErrors {
@@ -83,6 +89,14 @@ class UniversityRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], univers
           ))
     )
 
+  private val sendHousingCredentialsRoute = sendHousingCredentialsEndpoint
+    .serverSecurityLogicRecoverErrors {
+      case (token, universityId) =>
+        authAlgebra.authorizeUniversity(JWT(token.value), universityId) *> Applicative[F].pure(universityId)
+    }.serverLogicRecoverErrors(universityId =>
+      _ =>
+        universityAlgebra.sendHousingCredentials(universityId)
+    )
 }
 
 object UniversityRoutes {

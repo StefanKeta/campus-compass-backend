@@ -23,7 +23,8 @@ object UniversityEndpoints {
       listUniversityPrograms,
       listUniversityApplications,
       updateApplicationStatus,
-      listUniversityHousingRequests
+      listUniversityHousingRequests,
+      sendHousingCredentialsEndpoint
     )
 
   val createProgram: Endpoint[(AuthToken, UUID), CreateStudyProgramDTO, GenericError, StudyProgramDTO, Any] =
@@ -101,4 +102,17 @@ object UniversityEndpoints {
         )
       )
       .tag(REGIONAL_UNIVERSITY_TAG)
+
+  val sendHousingCredentialsEndpoint: Endpoint[(AuthToken, UUID), Unit, GenericError, Unit, Any] =
+    endpoint
+      .post
+      .securityIn(auth.bearer[AuthToken]())
+      .securityIn("api" / "v1" / "university" / "housing" / path[UUID]("universityId"))
+      .errorOut(
+        oneOf[GenericError](
+          oneOfVariant(
+            statusCode(StatusCode.BadRequest).and(jsonBody[GenericError])
+          )
+        )
+      )
 }
