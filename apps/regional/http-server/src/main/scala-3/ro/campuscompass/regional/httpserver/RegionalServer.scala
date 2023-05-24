@@ -36,9 +36,7 @@ class RegionalServer[F[_]: Async](
           .withHttpApp(regionalServerRoutes.http4sRoutes.orNotFound)
           .withoutTLS
           .withHttp2
-          /** EndMarker */
           .build
-        .build
       _ <- logger[Resource[F, *]].info(s"Regional server started at: $host:$port")
     } yield server
   }
