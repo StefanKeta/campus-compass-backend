@@ -3,14 +3,14 @@
     <envs>
       <env name="ADMIN_PASSWORD" value="admin" />
       <env name="ADMIN_USER" value="admin" />
-      <env name="JWT_KEY" value="campus-compass" />
+      <env name="JWT_KEY" value="jwt_key" />
       <env name="MONGO_PASSWORD" value="admin123" />
       <env name="MONGO_USER" value="admin" />
       <env name="SMTP_PASSWORD" value="mnrcpcucnycaziny" />
       <env name="MONGO_HOST" value="localhost" />
-      <env name="REGIONAL_API_KEY" value="api_key" />
-      <env name="FIREBASE_API_KEY" value="key" />
-      <env name="FIREBASE_PROJECT_ID" value="id" />
+      <env name="REGIONAL_API_KEY" value="regional_api_key" />
+      <env name="FIREBASE_API_KEY" value="AIzaSyAhSU2BQjIsrxAPWNO-rGb56hGX3NKSwWg" />
+      <env name="FIREBASE_PROJECT_ID" value="campus-compass-8542d" />
       <env name="REDIS_URI" value="redis://localhost" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="ro.campuscompass.global.Main" />

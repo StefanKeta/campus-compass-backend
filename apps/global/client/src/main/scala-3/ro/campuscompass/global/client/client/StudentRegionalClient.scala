@@ -41,7 +41,7 @@ object StudentRegionalClient {
         expectResponse[F, Option[UUID]](
           client,
           request[F, StudentApplication](
-            s"${node.be}/api/v1/student/apply/${studentApplication.programmeId}",
+            s"http://${node.be}/api/v1/student/apply/${studentApplication.programmeId}",
             entity = studentApplication
           ),
         )
@@ -49,7 +49,7 @@ object StudentRegionalClient {
       override def listProgrammes(): F[List[UniversityProgramme]] = regionalConfig.nodes.map { node =>
         expectResponse[F, List[UniversityProgramme]](
           client,
-          request[F, Unit](s"${node.be}/api/v1/student/apply/programmes")
+          request[F, Unit](s"http://${node.be}/api/v1/student/apply/programmes")
         )
       }.sequence.map(_.flatten)
 
@@ -57,7 +57,7 @@ object StudentRegionalClient {
         expectResponse[F, List[AppliedProgramme]](
           client,
           request[F, ListAppliedProgrammesReqDTO](
-            s"${node.be}/api/v1/student/applications/$studentId",
+            s"http://${node.be}/api/v1/student/applications/$studentId",
             entity = ListAppliedProgrammesReqDTO(studentId)
           )
         )
@@ -68,7 +68,7 @@ object StudentRegionalClient {
           jwt <- expectResponse[F, JWT](
             client,
             request[F, ViewApplicationReqDTO](
-              s"${node.be}/api/v1/student/applications",
+              s"http://${node.be}/api/v1/student/applications",
               entity = viewApplication
             )
           )
