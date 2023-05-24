@@ -4,16 +4,10 @@ import io.circe.generic.auto.*
 import ro.campuscompass.common.domain
 import ro.campuscompass.common.domain.AuthToken
 import ro.campuscompass.common.domain.error.AuthError
-import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, ViewApplicationRedirectDTO }
+import ro.campuscompass.global.client.api.model.response.{AppliedProgramme, ViewApplicationRedirectDTO}
 import ro.campuscompass.global.domain.University
-import ro.campuscompass.global.domain.error.StudentError
-import ro.campuscompass.global.httpserver.api.model.{
-  AppliedProgrammeGlobalDTO,
-  StudentApplicationDTO,
-  StudentDataDTO,
-  UniversityProgrammeGlobalDTO,
-  ViewApplicationDTO
-}
+import ro.campuscompass.global.domain.error.{AdminError, StudentError}
+import ro.campuscompass.global.httpserver.api.model.{AppliedProgrammeGlobalDTO, StudentApplicationDTO, StudentDataDTO, UniversityProgrammeGlobalDTO, ViewApplicationDTO}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -41,7 +35,7 @@ object StudentEndpoints {
     .in("api" / "v1" / "student")
     .securityIn(auth.bearer[AuthToken]())
     .errorOut(
-      oneOf[AuthError | StudentError](
+      oneOf[AuthError | StudentError | AdminError](
         oneOfVariant(
           statusCode(StatusCode.Unauthorized)
             .and(jsonBody[AuthError.InvalidJwt])
@@ -77,46 +71,50 @@ object StudentEndpoints {
         oneOfVariant(
           statusCode(StatusCode.BadRequest)
             .and(jsonBody[StudentError.StudentDataDoesNotExist])
+        ),
+        oneOfVariant(
+          statusCode(StatusCode.BadRequest)
+            .and(jsonBody[AdminError.UniversityNotFound])
         )
       )
     )
 
-  val applyForProgrammeEndpoint: Endpoint[AuthToken, StudentApplicationDTO, AuthError | StudentError, Unit, Any] =
+  val applyForProgrammeEndpoint: Endpoint[AuthToken, StudentApplicationDTO, AuthError | StudentError | AdminError, Unit, Any] =
     baseStudentEndpoint.post
       .in("apply")
       .in(jsonBody[StudentApplicationDTO])
       .out(emptyOutput)
 
-  val listProgrammesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError, List[UniversityProgrammeGlobalDTO], Any] =
+  val listProgrammesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError | AdminError, List[UniversityProgrammeGlobalDTO], Any] =
     baseStudentEndpoint.get
       .in("programmes")
       .out(jsonBody[List[UniversityProgrammeGlobalDTO]])
 
-  val listAppliedProgrammesEndpoint: Endpoint[AuthToken, UUID, AuthError | StudentError, List[AppliedProgrammeGlobalDTO], Any] =
+  val listAppliedProgrammesEndpoint: Endpoint[AuthToken, UUID, AuthError | StudentError | AdminError, List[AppliedProgrammeGlobalDTO], Any] =
     baseStudentEndpoint.get
       .in("programmes" / path[UUID]("studentId"))
       .out(jsonBody[List[AppliedProgrammeGlobalDTO]])
 
   val viewApplicationEndpoint
-    : Endpoint[AuthToken, ViewApplicationDTO, AuthError | StudentError, ViewApplicationRedirectDTO, Any] =
+    : Endpoint[AuthToken, ViewApplicationDTO, AuthError | StudentError | AdminError, ViewApplicationRedirectDTO, Any] =
     baseStudentEndpoint.get
       .in("application")
       .in(jsonBody[ViewApplicationDTO]).out(jsonBody[ViewApplicationRedirectDTO])
 
-  val listUniversitiesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError, List[University], Any] =
+  val listUniversitiesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError | AdminError, List[University], Any] =
     baseStudentEndpoint.get.in("universities").in(emptyInput).out(jsonBody[List[University]])
 
-  val listAppliedUniverstitiesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError, List[University], Any] =
+  val listAppliedUniverstitiesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError | AdminError, List[University], Any] =
     baseStudentEndpoint.get.in("applied-universities").in(emptyInput).out(jsonBody[List[University]])
 
-  val setStudentDetailsEndpoint: Endpoint[AuthToken, StudentDataDTO, AuthError | StudentError, Unit, Any] =
+  val setStudentDetailsEndpoint: Endpoint[AuthToken, StudentDataDTO, AuthError | StudentError | AdminError, Unit, Any] =
     baseStudentEndpoint
       .post
       .in("details")
       .in(jsonBody[StudentDataDTO])
       .out(emptyOutput)
 
-  val getStudentDetailsEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError, StudentDataDTO, Any] =
+  val getStudentDetailsEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError | AdminError, StudentDataDTO, Any] =
     baseStudentEndpoint
       .get
       .in("details")
