@@ -22,7 +22,7 @@ class UniversityRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], univers
   override def endpoints: List[AnyEndpoint] = UniversityEndpoints()
 
   override def routes: List[ServerEndpoint[Any, F]] =
-    List(createProgramRoute, listUniversityProgramsRoute, listUniversityApplicationsRoute, updateApplicationStatusRoute)
+    List(createProgramRoute, listUniversityProgramsRoute, listUniversityApplicationsRoute, updateApplicationStatusRoute, listUniversityHousingRequestsRoute)
 
   private val createProgramRoute = createProgram
     .serverSecurityLogicRecoverErrors {
