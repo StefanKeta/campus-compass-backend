@@ -95,7 +95,7 @@ object AuthAlgebra extends Logging {
     } yield user
 
     private def generateLoginResponse(user: User) = user.role match
-      case University => for {
+      case Role.University => for {
           node          <- identifyNode(user._id)
           universityJwt <- universityRegionalClient.generateUniversityUserJwt(user._id, node)
         } yield LoginResponseDTO(universityJwt, Some(node.fe))
