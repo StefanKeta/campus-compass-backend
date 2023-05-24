@@ -2,7 +2,7 @@ package ro.campuscompass.global.algebra.admin
 
 import cats.*
 import cats.effect.*
-import cats.effect.std.{ Random, UUIDGen }
+import cats.effect.std.*
 import cats.implicits.*
 import cats.syntax.*
 import com.google.cloud.firestore.Firestore
@@ -36,7 +36,9 @@ object AdminAlgebra extends Logging {
     override def getUniversities: F[List[University]] = for {
       _            <- logger.info("Getting all the universities by admin")
       universities <- universityRepository.findAll()
-      _            <- logger.info(s"Got ${universities.size} universities from database")
+      l <- universities.traverse(u => universityRepository.isConfirmed(u._id).map(b => (u, b)))
+        .map(_.filter(_._2.isDefined).filter(_._2.get).map(_._1))
+      _ <- logger.info(s"Got ${universities.size} universities from database")
     } yield universities
 
     override def confirmExistence(universityId: UUID): F[Unit] = for {
