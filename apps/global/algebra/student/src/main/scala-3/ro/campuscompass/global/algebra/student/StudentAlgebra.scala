@@ -64,6 +64,7 @@ object StudentAlgebra extends Logging {
               UniversityProgrammeGlobal(
                 uniUserId      = programme.universityId,
                 programmeName  = programme.name,
+                programmeId    = programme._id,
                 degreeType     = programme.kind,
                 language       = programme.language,
                 universityName = uni.name
