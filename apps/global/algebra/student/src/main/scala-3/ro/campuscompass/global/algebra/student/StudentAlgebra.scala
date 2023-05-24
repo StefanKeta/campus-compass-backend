@@ -134,7 +134,7 @@ object StudentAlgebra extends Logging {
           ApplicativeThrow[F].fromOption(maybeCoord, UniversityNotFound("No university found!"))
         )
         node <-
-          Applicative[F].pure(regionalConfig.nodes.sortBy(node => calculateDistance(coordinates, node.coordinates)).reverse.head)
+          Applicative[F].pure(regionalConfig.nodes.minBy(node => calculateDistance(coordinates, node.coordinates)))
       } yield node
 
       private def calculateDistance(coordinates: Coordinates, nodeCoordinates: Coordinates) = {
