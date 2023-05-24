@@ -39,11 +39,12 @@ object ApplicationEndpoints {
       )
       .tag(REGIONAL_APPLICATION_TAG)
 
-  val submitApplication: Endpoint[(AuthToken, UUID), Unit, GenericError, Unit, Any] =
+  val submitApplication: Endpoint[(AuthToken, UUID), SubmitAppDTO, GenericError, Unit, Any] =
     endpoint
-      .get
+      .post
       .securityIn(auth.bearer[AuthToken]())
       .securityIn("api" / "v1" / "application" / path[UUID]("applicationId") / "submit")
+      .in(jsonBody[SubmitAppDTO])
       .errorOut(
         oneOf[GenericError](
           oneOfVariant(

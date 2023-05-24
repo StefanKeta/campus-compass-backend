@@ -5,7 +5,7 @@ import cats.effect.Sync
 import cats.implicits.*
 import ro.campuscompass.common.domain.error.GenericError
 import ro.campuscompass.common.minio.MinIO
-import ro.campuscompass.regional.domain.{ Application, ApplicationStatus }
+import ro.campuscompass.regional.domain.*
 import ro.campuscompass.regional.persistance.ApplicationRepository
 
 import java.io.File
@@ -18,7 +18,7 @@ trait ApplicationAlgebra[F[_]] {
 
   def getApplicationForStudent(studentId: UUID): F[List[Application]]
 
-  def submitApplication(applicationId: UUID): F[Unit]
+  def submitApplication(applicationId: UUID, housing: Boolean): F[Unit]
 
   def uploadZip(applicationId: UUID, zipFile: File, fileName: Option[String]): F[Unit]
 }
@@ -46,7 +46,7 @@ object ApplicationAlgebra {
           apps <- applicationRepository.findAll()
         } yield apps.filter(_.studentId == studentId)
 
-      def submitApplication(applicationId: UUID): F[Unit] = for {
+      def submitApplication(applicationId: UUID, housing: Boolean): F[Unit] = for {
         app <- getApplication(applicationId)
         _ <- MonadThrow[F].fromOption(
           app.zipFile,
@@ -58,6 +58,16 @@ object ApplicationAlgebra {
           GenericError(s"Application $applicationId is in an inconsistent state")
         )
         _ <- applicationRepository.updateStatus(applicationId, ApplicationStatus.Submitted)
+
+        _ <- if (housing)
+          applicationRepository.updateHousing(applicationId, housing)
+        else
+          Sync[F].unit
+
+        _ <- if (housing)
+          applicationRepository.updateSentCredentials(applicationId, Some(false))
+        else
+          Sync[F].unit
       } yield ()
 
       def uploadZip(applicationId: UUID, zipFile: File, fileName: Option[String]): F[Unit] = for {

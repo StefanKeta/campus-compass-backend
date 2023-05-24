@@ -44,8 +44,8 @@ class ApplicationRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], applic
         authAlgebra.authorizeStudent(JWT(authToken.value), applicationId) *> Applicative[F].pure(applicationId)
     }
     .serverLogicRecoverErrors(applicationId =>
-      _ =>
-        applicationAlgebra.submitApplication(applicationId)
+      submitAppDTO =>
+        applicationAlgebra.submitApplication(applicationId, submitAppDTO.housing)
     )
 
   private val uploadZipRoute = uploadZip

@@ -19,12 +19,13 @@ trait ApplicationRepository[F[_]] {
   def updateStatus(applicationId: UUID, status: ApplicationStatus): F[Unit]
   def updateZipUrl(applicationId: UUID, url: String): F[Unit]
   def updateSentCredentials(applicationId: UUID, sentCredentials: Option[Boolean]): F[Unit]
+  def updateHousing(applicationId: UUID, housing: Boolean): F[Unit]
 }
 
 object ApplicationRepository {
   given MongoCodecProvider[Application] = deriveCirceCodecProvider
 
-  def apply[F[_]: Sync](mongoDatabase: MongoDatabase[F]) = new ApplicationRepository[F]:
+  def apply[F[_]: Sync](mongoDatabase: MongoDatabase[F]) = new ApplicationRepository[F] {
     private val docs = mongoDatabase.getCollectionWithCodec[Application]("applications")
 
     override def insert(application: Application): F[Unit] =
@@ -39,9 +40,16 @@ object ApplicationRepository {
     override def updateZipUrl(applicationId: UUID, url: String): F[Unit] =
       docs.flatMap(_.updateOne(Filter.eq("_id", applicationId), Update.set("zipFile", Some(url))).void)
 
+    override def updateHousing(applicationId: UUID, housing: Boolean): F[Unit] = docs.flatMap(_.updateOne(
+      Filter.eq("_id", applicationId),
+      Update.set("sentHousingCredentials", housing)
+    ).void)
+
     override def updateSentCredentials(applicationId: UUID, sentHousingCredentials: Option[Boolean]): F[Unit] =
       docs.flatMap(_.updateOne(
         Filter.eq("_id", applicationId),
         Update.set("sentHousingCredentials", Some(sentHousingCredentials))
       ).void)
+
+  }
 }
