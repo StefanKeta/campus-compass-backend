@@ -1,29 +1,27 @@
 package ro.campuscompass.global.algebra.auth
 
-import cats.effect.std.UUIDGen
-import cats.effect.{ Async, Sync }
-import cats.implicits.*
 import cats.{ Applicative, ApplicativeThrow, MonadThrow, Monoid }
+import cats.effect.*
+import cats.effect.std.UUIDGen
+import cats.implicits.*
 import dev.profunktor.redis4cats.RedisCommands
 import io.circe.Json
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.typelevel.log4cats.Logger
 import ro.campuscompass.common
-import ro.campuscompass.common.crypto.{ JWT, JwtConfig, JwtUtils, SCrypt }
+import ro.campuscompass.common.crypto.*
 import ro.campuscompass.common.domain.Role
-import ro.campuscompass.common.domain.Role.{ Admin, University }
+import ro.campuscompass.common.domain.Role.*
 import ro.campuscompass.common.domain.error.AuthError
+import ro.campuscompass.common.domain.error.AuthError.*
 import ro.campuscompass.common.logging.Logging
 import ro.campuscompass.common.time.Time
-import ro.campuscompass.global.domain.error.AdminError.UniversityNotFound
-import ro.campuscompass.common.domain.error.AuthError.*
-import ro.campuscompass.global.domain.{ Coordinates, LoginResponseDTO, User }
-import ro.campuscompass.global.persistence.{ UniversityRepository, UserRepository }
-import ro.campuscompass.global.domain.User
 import ro.campuscompass.global.client.client.UniversityRegionalClient
 import ro.campuscompass.global.client.config.RegionalConfig
-import ro.campuscompass.global.persistence.UserRepository
+import ro.campuscompass.global.domain.error.AdminError.UniversityNotFound
+import ro.campuscompass.global.domain.{ University, * }
+import ro.campuscompass.global.persistence.*
 
 import java.time.Instant
 import java.util.UUID
@@ -49,6 +47,7 @@ object AuthAlgebra extends Logging {
     override def login(username: String, password: String): F[LoginResponseDTO] = for {
       maybeUser     <- userRepository.findByUsername(username)
       user          <- ApplicativeThrow[F].fromOption(maybeUser, WrongCredentials("Wrong credentials!"))
+      _             <- MonadThrow[F].raiseWhen(user.password != password)(WrongCredentials("Wrong credentials!"))
       loginResponse <- generateLoginResponse(user)
     } yield loginResponse
 
@@ -97,12 +96,12 @@ object AuthAlgebra extends Logging {
 
     private def generateLoginResponse(user: User) = user.role match
       case University => for {
-          node                 <- identifyNode(user._id)
-          universityJwt        <- universityRegionalClient.generateUniversityUserJwt(user._id, node)
+          node          <- identifyNode(user._id)
+          universityJwt <- universityRegionalClient.generateUniversityUserJwt(user._id, node)
         } yield LoginResponseDTO(universityJwt, Some(node.fe))
       case _ => for {
           jwt <- createJWT(user)
-        } yield LoginResponseDTO(jwt,None)
+        } yield LoginResponseDTO(jwt, None)
 
     private def identifyNode(universityUserId: UUID) = for {
       coordinates <- universityRepository.findCoordinatesByUserId(universityUserId).flatMap(maybeCoord =>
