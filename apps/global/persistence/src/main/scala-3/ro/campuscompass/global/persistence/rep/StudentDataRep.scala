@@ -8,7 +8,7 @@ import java.time.Instant
 import java.util.UUID
 
 final case class StudentDataRep(
-  _id: UUID,
+  studentId: UUID,
   firstName: Option[String],
   lastName: Option[String],
   dob: Option[Instant],
@@ -19,7 +19,7 @@ final case class StudentDataRep(
   degree: Option[Degree]
 ) {
   def domain() = StudentData(
-    _id       = this._id,
+    _id       = this.studentId,
     firstName = this.firstName,
     lastName  = this.lastName,
     dob       = this.dob,
@@ -34,7 +34,7 @@ final case class StudentDataRep(
 object StudentDataRep {
   given MongoCodecProvider[StudentDataRep] = deriveCirceCodecProvider[StudentDataRep]
   def apply(studentId: UUID, studentData: StudentData): StudentDataRep = StudentDataRep(
-    _id       = studentId,
+    studentId = studentId,
     firstName = studentData.firstName,
     lastName  = studentData.lastName,
     dob       = studentData.dob,

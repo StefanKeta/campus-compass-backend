@@ -97,7 +97,7 @@ object StudentEndpoints {
 
   val viewApplicationEndpoint
     : Endpoint[AuthToken, ViewApplicationDTO, AuthError | StudentError | AdminError, ViewApplicationRedirectDTO, Any] =
-    baseStudentEndpoint.get
+    baseStudentEndpoint.post
       .in("application")
       .in(jsonBody[ViewApplicationDTO]).out(jsonBody[ViewApplicationRedirectDTO])
 
