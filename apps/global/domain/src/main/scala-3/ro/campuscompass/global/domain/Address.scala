@@ -1,9 +1,9 @@
 package ro.campuscompass.global.domain
 
 final case class Address(
-  street: String,
-  number: String,
-  postalCode: Int,
-  town: String,
-  country: String
+  street: Option[String],
+  number: Option[String],
+  postalCode: Option[Int],
+  town: Option[String],
+  country: Option[String]
 )
