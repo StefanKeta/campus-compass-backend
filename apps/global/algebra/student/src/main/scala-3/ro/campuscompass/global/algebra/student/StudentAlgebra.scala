@@ -58,15 +58,16 @@ object StudentAlgebra extends Logging {
         programmes <- client.listProgrammes()
         res <- programmes.traverse(programme =>
           for {
-            university <- universityRepository.find(programme.uniUserId)
+            university <- universityRepository.find(programme._id)
             programme <- ApplicativeThrow[F].fromOption(
               university,
-              UniversityNotFound(s"University with userId ${programme.uniUserId}")
+              UniversityNotFound(s"University with userId ${programme._id}")
             ).map(uni =>
               UniversityProgrammeGlobal(
-                uniUserId      = programme.uniUserId,
-                programmeName  = programme.programmeName,
-                degreeType     = programme.degreeType,
+                uniUserId      = programme.universityId,
+                programmeName  = programme.name,
+                degreeType     = programme.kind,
+                language     = programme.language,
                 universityName = uni.name
               )
             )

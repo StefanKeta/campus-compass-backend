@@ -1,7 +1,7 @@
 package ro.campuscompass.regional.httpserver.api.endpoint
 
 import io.circe.generic.auto.*
-import ro.campuscompass.common.domain.{AuthorizeStudentDTO, AuthorizeUniversityDTO, AuthToken, CreateApplicationDTO}
+import ro.campuscompass.common.domain.{AuthorizeStudentDTO, AuthorizeUniversityDTO, AuthToken, CreateApplicationDTO, StudyProgramDTO}
 import ro.campuscompass.common.domain.error.GenericError
 import ro.campuscompass.regional.domain.*
 import ro.campuscompass.regional.httpserver.api.model.*

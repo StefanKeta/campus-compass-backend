@@ -24,7 +24,7 @@ import java.util.UUID
 
 trait StudentRegionalClient[F[_]] {
   def applyToProgramme(studentApplication: StudentApplication, studentData: StudentData, node: Node): F[Option[UUID]]
-  def listProgrammes(): F[List[UniversityProgramme]]
+  def listProgrammes(): F[List[StudyProgramDTO]]
   def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgramme]]
   def viewApplication(viewApplication: ViewApplicationReqDTO, node: Node): F[ViewApplicationRedirectDTO]
 }
@@ -56,8 +56,8 @@ object StudentRegionalClient {
           )
         )
 
-      override def listProgrammes(): F[List[UniversityProgramme]] = regionalConfig.nodes.map { node =>
-        expectResponse[F, List[UniversityProgramme]](
+      override def listProgrammes(): F[List[StudyProgramDTO]] = regionalConfig.nodes.map { node =>
+        expectResponse[F, List[StudyProgramDTO]](
           client,
           request[F, Unit](s"http://${node.be}/api/v1/program")
         )

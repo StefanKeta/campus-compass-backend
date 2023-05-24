@@ -4,7 +4,7 @@ import io.circe.generic.auto.*
 import ro.campuscompass.common.domain
 import ro.campuscompass.common.domain.AuthToken
 import ro.campuscompass.common.domain.error.AuthError
-import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, UniversityProgramme, ViewApplicationRedirectDTO }
+import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, ViewApplicationRedirectDTO }
 import ro.campuscompass.global.domain.University
 import ro.campuscompass.global.domain.error.StudentError
 import ro.campuscompass.global.httpserver.api.model.{

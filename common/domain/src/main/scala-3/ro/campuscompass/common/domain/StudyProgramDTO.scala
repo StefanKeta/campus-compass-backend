@@ -1,6 +1,4 @@
-package ro.campuscompass.regional.httpserver.api.model
-
-import ro.campuscompass.regional.domain.StudyProgram
+package ro.campuscompass.common.domain
 
 import java.util.UUID
 

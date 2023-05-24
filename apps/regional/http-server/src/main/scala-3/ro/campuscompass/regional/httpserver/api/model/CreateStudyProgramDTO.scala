@@ -1,7 +1,6 @@
 package ro.campuscompass.regional.httpserver.api.model
 
-import ro.campuscompass.regional.domain.StudyProgram
-
+import ro.campuscompass.common.domain.StudyProgram
 import java.util.UUID
 
 final case class CreateStudyProgramDTO(name: String, kind: String, language: String) {

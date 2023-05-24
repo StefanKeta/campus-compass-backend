@@ -7,7 +7,8 @@ import cats.effect.Sync
 import cats.implicits.*
 import mongo4cats.database.MongoDatabase
 import mongo4cats.operations.{ Filter, Update }
-import ro.campuscompass.regional.domain.{ Application, ApplicationStatus, StudyProgram }
+import ro.campuscompass.common.domain.StudyProgram
+import ro.campuscompass.regional.domain.{ Application, ApplicationStatus }
 import ro.campuscompass.regional.persistance.rep.StudyProgramRep
 
 import java.util.UUID

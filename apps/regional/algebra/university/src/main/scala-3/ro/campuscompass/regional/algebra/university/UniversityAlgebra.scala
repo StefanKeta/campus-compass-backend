@@ -5,7 +5,7 @@ import cats.effect.*
 import cats.effect.implicits.*
 import cats.effect.std.Random
 import cats.implicits.*
-import ro.campuscompass.common.domain.Credentials
+import ro.campuscompass.common.domain.{Credentials, StudyProgram}
 import ro.campuscompass.common.domain.error.GenericError
 import ro.campuscompass.common.email.*
 import ro.campuscompass.regional.domain.*

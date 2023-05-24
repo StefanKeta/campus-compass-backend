@@ -11,9 +11,8 @@ import org.http4s.circe.CirceEntityEncoder.*
 import org.http4s.client.Client
 import org.typelevel.ci.CIString
 import ro.campuscompass.common.crypto.JWT
-import ro.campuscompass.common.domain.AuthorizeUniversityDTO
+import ro.campuscompass.common.domain.{AuthorizeUniversityDTO, StudyProgramDTO}
 import ro.campuscompass.global.client.api.model.request.UniversityLoginRequestDTO
-import ro.campuscompass.global.client.api.model.response.StudyProgramDTO
 import ro.campuscompass.global.client.client
 import ro.campuscompass.global.client.config.*
 import ro.campuscompass.global.domain.Node

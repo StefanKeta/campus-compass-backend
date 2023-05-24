@@ -5,13 +5,14 @@ import cats.*
 import cats.effect.kernel.Sync
 import cats.implicits.*
 import ro.campuscompass.common.crypto.JWT
-import ro.campuscompass.common.domain.AuthToken
+import ro.campuscompass.common.domain.{AuthToken, StudyProgramDTO}
+import ro.campuscompass.common.domain
 import ro.campuscompass.common.domain.error.AuthError
 import ro.campuscompass.common.http.Routes
 import ro.campuscompass.regional.algebra.authorization.AuthorizationAlgebra
 import ro.campuscompass.regional.algebra.university.UniversityAlgebra
-import ro.campuscompass.regional.httpserver.api.endpoint.{ GlobalEndpoints, UniversityEndpoints }
-import ro.campuscompass.regional.httpserver.api.model.{ HousingRequestDTO, StudyProgramDTO, UpdateApplicationStatusDTO }
+import ro.campuscompass.regional.httpserver.api.endpoint.{GlobalEndpoints, UniversityEndpoints}
+import ro.campuscompass.regional.httpserver.api.model.{HousingRequestDTO, UpdateApplicationStatusDTO}
 import sttp.tapir.AnyEndpoint
 import sttp.tapir.server.ServerEndpoint
 
@@ -42,7 +43,7 @@ class UniversityRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], univers
           _id <- UUIDGen.randomUUID[F]
           program = input.domain(_id, universityId)
           _ <- universityAlgebra.createProgram(program)
-        } yield StudyProgramDTO(program)
+        } yield domain.StudyProgramDTO(program)
     )
 
   private val listUniversityProgramsRoute = listUniversityPrograms
@@ -52,7 +53,7 @@ class UniversityRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], univers
     }
     .serverLogicRecoverErrors(universityId =>
       _ =>
-        universityAlgebra.programs(Some(universityId)).map(_.map(StudyProgramDTO(_)))
+        universityAlgebra.programs(Some(universityId)).map(_.map(domain.StudyProgramDTO(_)))
     )
 
   private val listUniversityApplicationsRoute = listUniversityApplications

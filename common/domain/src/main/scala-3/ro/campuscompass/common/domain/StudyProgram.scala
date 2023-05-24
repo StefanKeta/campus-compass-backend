@@ -1,4 +1,4 @@
-package ro.campuscompass.regional.domain
+package ro.campuscompass.common.domain
 
 import java.util.UUID
 
