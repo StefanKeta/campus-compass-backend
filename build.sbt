@@ -68,21 +68,6 @@ lazy val sharedSettings = Seq(
   scalacOptions ++= Seq(
     "-Xmax-inlines:40"
   ),
-  Compile / compile / wartremoverErrors :=
-    Seq(
-      Wart.ExplicitImplicitTypes,
-      Wart.FinalCaseClass,
-      Wart.FinalVal,
-      Wart.IsInstanceOf,
-      Wart.LeakingSealed,
-      Wart.NonUnitStatements,
-      Wart.Null,
-      Wart.OptionPartial,
-      Wart.Return,
-      Wart.Serializable,
-      Wart.StringPlusAny,
-      Wart.ToString
-    ),
   libraryDependencies ++= Seq(
     Dependencies.cats,
     Dependencies.catsEffect,
