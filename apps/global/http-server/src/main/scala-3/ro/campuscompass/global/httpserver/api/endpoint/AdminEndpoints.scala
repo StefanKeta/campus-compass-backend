@@ -76,5 +76,4 @@ object AdminEndpoints {
         )
       )
     )
-    .out(emptyOutput)
 }

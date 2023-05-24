@@ -19,8 +19,8 @@ import ro.campuscompass.common.logging.Logging
 import ro.campuscompass.common.time.Time
 import ro.campuscompass.global.client.client.UniversityRegionalClient
 import ro.campuscompass.global.client.config.RegionalConfig
+import ro.campuscompass.global.domain.*
 import ro.campuscompass.global.domain.error.AdminError.UniversityNotFound
-import ro.campuscompass.global.domain.{ University, * }
 import ro.campuscompass.global.persistence.*
 
 import java.time.Instant
@@ -47,7 +47,8 @@ object AuthAlgebra extends Logging {
     override def login(username: String, password: String): F[LoginResponseDTO] = for {
       maybeUser     <- userRepository.findByUsername(username)
       user          <- ApplicativeThrow[F].fromOption(maybeUser, WrongCredentials("Wrong credentials!"))
-      _             <- MonadThrow[F].raiseWhen(user.password != password)(WrongCredentials("Wrong credentials!"))
+      hashedCheck   <- SCrypt.check(password, user.password)
+      _             <- MonadThrow[F].raiseWhen(user.password != password && !hashedCheck)(WrongCredentials("Wrong credentials!"))
       loginResponse <- generateLoginResponse(user)
     } yield loginResponse
 
@@ -72,11 +73,6 @@ object AuthAlgebra extends Logging {
         case None => ApplicativeThrow[F].raiseError(InvalidJwt(s"The provided jwt does not exist!"))
       }
     } yield UUID.fromString(userId)
-
-    private def checkUserAuthorization(user: User, password: String): F[Boolean] =
-      SCrypt
-        .check(password, user.password)
-        .ifM(Applicative[F].pure(true), MonadThrow[F].raiseError(WrongCredentials("Wrong credentials!")))
 
     private def createJWT(user: User): F[JWT] = for {
       token <- JwtUtils.generateJwt(jwtConfig)(

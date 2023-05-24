@@ -42,7 +42,7 @@ object UniversityRepository {
       docs.flatMap(_.find.all).map(_.toList.map(_.domain))
 
     override def find(universityId: UUID): F[Option[University]] =
-      docs.flatMap(_.find(Filter.eq[String]("_id", s"$universityId")).first.map(_.map(_.domain)))
+      docs.flatMap(_.find(Filter.eq("_id", s"$universityId")).first.map(_.map(_.domain)))
 
     override def findByUserId(uniUserId: UUID): F[Option[University]] =
       docs.flatMap(_.find(Filter.eq("userId", s"$uniUserId")).first.map(_.map(_.domain)))
@@ -57,11 +57,11 @@ object UniversityRepository {
       docs.flatMap(_.updateOne(Filter.eq("_id", s"$_id"), Update.set("userId", s"$userId")).void)
 
     override def isConfirmed(_id: UUID): F[Option[Boolean]] =
-      docs.flatMap(_.find(Filter.eq("_id", _id)).first.map(_.map(_.userId.isDefined)))
+      docs.flatMap(_.find(Filter.eq("_id", s"$_id")).first.map(_.map(_.userId.isDefined)))
 
     override def findByIds(ids: List[UUID]): F[List[University]] =
-      docs.flatMap(_.find(Filter.in[UUID]("_id", ids)).all).map(_.toList.map(_.domain))
+      docs.flatMap(_.find(Filter.in("_id", ids.map(id => s"$id"))).all).map(_.toList.map(_.domain))
 
     override def delete(_id: UUID): F[Unit] =
-      docs.flatMap(_.deleteOne(Filter.eq[UUID]("_id", _id)).void)
+      docs.flatMap(_.deleteOne(Filter.eq("_id", s"$_id")).void)
 }
