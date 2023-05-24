@@ -109,7 +109,11 @@ object StudentAlgebra extends Logging {
           }
         } yield redirect
 
-      override def listUniversities(): F[List[University]] = universityRepository.findAll()
+      override def listUniversities(): F[List[University]] = for{
+        universities <- universityRepository.findAll()
+        l <- universities.traverse(u => universityRepository.isConfirmed(u._id).map(b => (u, b)))
+          .map(_.filter(_._2.isDefined).filter(_._2.get).map(_._1))
+      } yield l
 
       override def listAppliedUniversities(userId: UUID): F[List[University]] = for {
         applications <- applicationRepository.findAllApplications(userId)
