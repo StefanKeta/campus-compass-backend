@@ -1,22 +1,22 @@
 package ro.campuscompass.global.client.client
 
 import cats.Applicative
-import cats.effect.kernel.{ Async, Concurrent }
+import cats.effect.kernel.*
 import cats.implicits.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.http4s.*
-import org.http4s.circe.CirceEntityEncoder.*
 import org.http4s.circe.CirceEntityDecoder.*
+import org.http4s.circe.CirceEntityEncoder.*
 import org.http4s.client.Client
 import org.http4s.headers.Authorization
 import org.typelevel.ci.CIString
 import ro.campuscompass.common.crypto.JWT
 import ro.campuscompass.global.client.*
-import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, UniversityProgramme, ViewApplicationRedirectDTO }
-import ro.campuscompass.global.client.api.model.request.{ ListAppliedProgrammesReqDTO, ViewApplicationReqDTO }
-import ro.campuscompass.global.client.config.{ ApiKeyConfig, RegionalConfig }
-import ro.campuscompass.global.domain.{ Node, StudentApplication }
+import ro.campuscompass.global.client.api.model.request.*
+import ro.campuscompass.global.client.api.model.response.*
+import ro.campuscompass.global.client.config.*
+import ro.campuscompass.global.domain.*
 import sttp.tapir.*
 
 import java.util.UUID
@@ -41,7 +41,8 @@ object StudentRegionalClient {
         expectResponse[F, Option[UUID]](
           client,
           request[F, StudentApplication](
-            s"http://${node.be}/api/v1/student/apply/${studentApplication.programmeId}",
+            method = Method.POST,
+            path = s"http://${node.be}/api/v1/application",
             entity = studentApplication
           ),
         )
@@ -49,7 +50,7 @@ object StudentRegionalClient {
       override def listProgrammes(): F[List[UniversityProgramme]] = regionalConfig.nodes.map { node =>
         expectResponse[F, List[UniversityProgramme]](
           client,
-          request[F, Unit](s"http://${node.be}/api/v1/student/apply/programmes")
+          request[F, Unit](s"http://${node.be}/api/v1/program")
         )
       }.sequence.map(_.flatten)
 
@@ -57,7 +58,7 @@ object StudentRegionalClient {
         expectResponse[F, List[AppliedProgramme]](
           client,
           request[F, ListAppliedProgrammesReqDTO](
-            s"http://${node.be}/api/v1/student/applications/$studentId",
+            s"http://${node.be}/api/v1/$studentId/application",
             entity = ListAppliedProgrammesReqDTO(studentId)
           )
         )
@@ -68,7 +69,7 @@ object StudentRegionalClient {
           jwt <- expectResponse[F, JWT](
             client,
             request[F, ViewApplicationReqDTO](
-              s"http://${node.be}/api/v1/student/applications",
+              s"http://${node.be}/api/v1/authorize/student",
               entity = viewApplication
             )
           )
