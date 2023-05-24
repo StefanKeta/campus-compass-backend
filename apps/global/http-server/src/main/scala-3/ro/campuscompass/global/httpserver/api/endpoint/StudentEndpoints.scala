@@ -7,7 +7,7 @@ import ro.campuscompass.common.domain.error.AuthError
 import ro.campuscompass.global.client.api.model.response.{AppliedProgramme, ViewApplicationRedirectDTO}
 import ro.campuscompass.global.domain.University
 import ro.campuscompass.global.domain.error.{AdminError, StudentError}
-import ro.campuscompass.global.httpserver.api.model.{AppliedProgrammeGlobalDTO, StudentApplicationDTO, StudentDataDTO, UniversityProgrammeGlobalDTO, ViewApplicationDTO}
+import ro.campuscompass.global.httpserver.api.model.{AppliedProgrammeGlobalDTO, ProgrammeApplicationDTO, StudentDataDTO, UniversityProgrammeGlobalDTO, ViewApplicationDTO}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -79,10 +79,10 @@ object StudentEndpoints {
       )
     )
 
-  val applyForProgrammeEndpoint: Endpoint[AuthToken, StudentApplicationDTO, AuthError | StudentError | AdminError, Unit, Any] =
+  val applyForProgrammeEndpoint: Endpoint[AuthToken, ProgrammeApplicationDTO, AuthError | StudentError | AdminError, Unit, Any] =
     baseStudentEndpoint.post
       .in("apply")
-      .in(jsonBody[StudentApplicationDTO])
+      .in(jsonBody[ProgrammeApplicationDTO])
       .out(emptyOutput)
 
   val listProgrammesEndpoint: Endpoint[AuthToken, Unit, AuthError | StudentError | AdminError, List[UniversityProgrammeGlobalDTO], Any] =

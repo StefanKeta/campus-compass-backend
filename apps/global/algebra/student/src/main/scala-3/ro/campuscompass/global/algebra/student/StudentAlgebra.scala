@@ -21,30 +21,28 @@ import ro.campuscompass.global.persistence.*
 import java.util.UUID
 
 trait StudentAlgebra[F[_]] {
-  def applyToProgramme(studentApplication: StudentApplication): F[Unit]
+  def applyToProgramme(application: ProgrammeApplication): F[Unit]
   def listProgrammes(): F[List[UniversityProgrammeGlobal]]
   def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgrammeGlobal]]
   def viewApplication(studentId: UUID, universityId: UUID, applicationId: UUID): F[ViewApplicationRedirectDTO]
   def listUniversities(): F[List[University]]
-  def listAppliedUniversities(userId: UUID): F[List[University]]
   def getStudentData(studentId: UUID): F[StudentData]
   def setStudentData(studentUserId: UUID, studentData: StudentData): F[Unit]
 }
 
 object StudentAlgebra extends Logging {
   def apply[F[_]: Sync](
-    applicationRepository: StudentApplicationRepository[F],
     studentRepository: StudentDataRepository[F],
     universityRepository: UniversityRepository[F],
     client: StudentRegionalClient[F],
     regionalConfig: RegionalConfig
   ) =
     new StudentAlgebra[F]:
-      override def applyToProgramme(studentApplication: StudentApplication): F[Unit] = for {
-        node           <- identifyNode(studentApplication.universityUserId)
-        studentDataOpt <- studentRepository.findById(studentApplication.userId)
+      override def applyToProgramme(application: ProgrammeApplication): F[Unit] = for {
+        node           <- identifyNode(application.universityUserId)
+        studentDataOpt <- studentRepository.findById(application.studentId)
         studentData    <- ApplicativeThrow[F].fromOption(studentDataOpt, StudentDataDoesNotExist("Student data missing"))
-        _ <- client.applyToProgramme(studentApplication, studentData, node).flatMap {
+        _ <- client.applyToProgramme(application, studentData, node).flatMap {
           case Some(id) => Applicative[F].pure(id)
           case None =>
             ApplicativeThrow[F].raiseError(
@@ -110,12 +108,6 @@ object StudentAlgebra extends Logging {
         l <- universities.traverse(u => universityRepository.isConfirmed(u._id).map(b => (u, b)))
           .map(_.filter(_._2.isDefined).filter(_._2.get).map(_._1))
       } yield l
-
-      override def listAppliedUniversities(userId: UUID): F[List[University]] = for {
-        applications <- applicationRepository.findAllApplications(userId)
-        universityIds = applications.map(_.programmeId)
-        universitiesApplied <- universityRepository.findByIds(universityIds)
-      } yield universitiesApplied
 
       override def setStudentData(studentUserId: UUID, studentData: StudentData): F[Unit] =
         studentRepository.insert(studentUserId, studentData)

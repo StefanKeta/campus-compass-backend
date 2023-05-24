@@ -8,11 +8,12 @@ import ro.campuscompass.common.domain.{ AuthToken, Role }
 import ro.campuscompass.common.http.Routes
 import ro.campuscompass.global.algebra.auth.AuthAlgebra
 import ro.campuscompass.global.algebra.student.StudentAlgebra
+import ro.campuscompass.global.domain.ProgrammeApplication
 import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints
 import ro.campuscompass.global.httpserver.api.endpoint.StudentEndpoints.*
 import ro.campuscompass.global.httpserver.api.model.{
   AppliedProgrammeGlobalDTO,
-  StudentApplicationDTO,
+  ProgrammeApplicationDTO,
   StudentDataDTO,
   UniversityProgrammeGlobalDTO
 }
@@ -25,7 +26,6 @@ class StudentRoutes[F[_]: Async](authAlgebra: AuthAlgebra[F], studentAlgebra: St
   override def routes = List(
     applyToProgrammeRoute,
     listUniversitiesRoute,
-    listAppliedUniversitiesRoute,
     listAppliedProgrammesRoute,
     listProgrammesRoute,
     viewApplicationRoute,
@@ -36,12 +36,13 @@ class StudentRoutes[F[_]: Async](authAlgebra: AuthAlgebra[F], studentAlgebra: St
   override def endpoints: List[AnyEndpoint] = StudentEndpoints()
 
   private val applyToProgrammeRoute =
-    applyForProgrammeEndpoint.serverSecurityLogicRecoverErrors(handleAuthentication).serverLogicRecoverErrors(userId =>
-      application =>
-        for {
-          _id <- UUIDGen.randomUUID[F]
-          student = application.domain(_id, userId)
-        } yield studentAlgebra.applyToProgramme(student)
+    applyForProgrammeEndpoint.serverSecurityLogicRecoverErrors(handleAuthentication).serverLogicRecoverErrors(studentId =>
+      dto =>
+        studentAlgebra.applyToProgramme(ProgrammeApplication(
+          studentId        = studentId,
+          programmeId      = dto.programmeId,
+          universityUserId = dto.universityUserId
+        ))
     )
 
   private val listProgrammesRoute =
@@ -62,11 +63,6 @@ class StudentRoutes[F[_]: Async](authAlgebra: AuthAlgebra[F], studentAlgebra: St
   private val listUniversitiesRoute =
     listUniversitiesEndpoint.serverSecurityLogicRecoverErrors(handleAuthentication).serverLogicRecoverErrors(_ =>
       _ => studentAlgebra.listUniversities()
-    )
-
-  private val listAppliedUniversitiesRoute =
-    listAppliedUniverstitiesEndpoint.serverSecurityLogicRecoverErrors(handleAuthentication).serverLogicRecoverErrors(userId =>
-      _ => studentAlgebra.listAppliedUniversities(userId)
     )
 
   private val setStudentDetailsRoute = setStudentDetailsEndpoint

@@ -23,7 +23,7 @@ import sttp.tapir.*
 import java.util.UUID
 
 trait StudentRegionalClient[F[_]] {
-  def applyToProgramme(studentApplication: StudentApplication, studentData: StudentData, node: Node): F[Option[UUID]]
+  def applyToProgramme(application: ProgrammeApplication, studentData: StudentData, node: Node): F[Option[UUID]]
   def listProgrammes(): F[List[StudyProgramDTO]]
   def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgramme]]
   def viewApplication(viewApplication: ViewApplicationReqDTO, node: Node): F[ViewApplicationRedirectDTO]
@@ -39,7 +39,7 @@ object StudentRegionalClient {
       implicit val key: String = apiKeyConfig.key
 
       override def applyToProgramme(
-        studentApplication: StudentApplication,
+        studentApplication: ProgrammeApplication,
         studentData: StudentData,
         node: Node
       ): F[Option[UUID]] =
@@ -50,7 +50,7 @@ object StudentRegionalClient {
             path   = s"http://${node.be}/api/v1/application",
             entity = CreateApplicationDTO(
               studentData = studentData,
-              studentId   = studentApplication.userId,
+              studentId   = studentApplication.studentId,
               programId   = studentApplication.programmeId,
             )
           )

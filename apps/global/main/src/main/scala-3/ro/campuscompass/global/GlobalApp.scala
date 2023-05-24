@@ -39,7 +39,6 @@ object GlobalApp extends Logging {
 
     userRepository               <- Resource.pure(UserRepository[F](mongoDb))
     universityRepository         <- Resource.pure(UniversityRepository[F](mongoDb))
-    studentApplicationRepository <- Resource.pure(StudentApplicationRepository[F](mongoDb))
     studentDataRepository        <- Resource.pure(StudentDataRepository[F](mongoDb))
     universityFirebaseRepository <- Resource.pure(UniversityFirebaseRepository(firestore))
 
@@ -76,7 +75,6 @@ object GlobalApp extends Logging {
       ))
     universityAlgebra <- Resource.pure(UniversityAlgebra[F](universityRepository))
     studentAlgebra <- Resource.pure(StudentAlgebra[F](
-      studentApplicationRepository,
       studentDataRepository,
       universityRepository,
       studentRegionalClient,
