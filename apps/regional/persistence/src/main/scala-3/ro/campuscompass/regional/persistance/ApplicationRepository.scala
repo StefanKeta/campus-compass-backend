@@ -8,7 +8,7 @@ import cats.implicits.*
 import mongo4cats.database.MongoDatabase
 import mongo4cats.operations.{ Filter, Update }
 import ro.campuscompass.common.domain.StudyProgram
-import ro.campuscompass.regional.domain.{ Application, ApplicationStatus }
+import ro.campuscompass.regional.domain.*
 import ro.campuscompass.regional.persistance.rep.StudyProgramRep
 
 import java.util.UUID
@@ -16,7 +16,7 @@ import java.util.UUID
 trait ApplicationRepository[F[_]] {
   def insert(application: Application): F[Unit]
   def findAll(): F[List[Application]]
-  def updateStatus(applicationId: UUID, status: ApplicationStatus): F[Unit]
+  def updateStatus(applicationId: UUID, status: String): F[Unit]
   def updateZipUrl(applicationId: UUID, url: String): F[Unit]
   def updateSentCredentials(applicationId: UUID, sentCredentials: Option[Boolean]): F[Unit]
   def updateHousing(applicationId: UUID, housing: Boolean): F[Unit]
@@ -34,7 +34,7 @@ object ApplicationRepository {
     override def findAll(): F[List[Application]] =
       docs.flatMap(_.find.all).map(_.toList)
 
-    override def updateStatus(applicationId: UUID, status: ApplicationStatus): F[Unit] =
+    override def updateStatus(applicationId: UUID, status: String): F[Unit] =
       docs.flatMap(_.updateOne(Filter.eq("_id", applicationId), Update.set("status", status)).void)
 
     override def updateZipUrl(applicationId: UUID, url: String): F[Unit] =

@@ -83,7 +83,7 @@ class GlobalRoutes[F[_]: MonadThrow](
           programId              = dto.programId,
           programName            = programmeName,
           zipFile                = None,
-          status                 = ApplicationStatus.InProcess,
+          status                 = "InProcess",
           housing                = false,
           sentHousingCredentials = None,
           timestamp              = Instant.now(),

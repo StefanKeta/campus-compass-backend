@@ -17,7 +17,7 @@ trait UniversityAlgebra[F[_]] {
   def createProgram(program: StudyProgram): F[Unit]
   def programs(universityId: Option[UUID]): F[List[StudyProgram]]
   def applications(universityId: UUID): F[List[Application]]
-  def updateApplicationStatus(applicationId: UUID, status: ApplicationStatus): F[Unit]
+  def updateApplicationStatus(applicationId: UUID, status: String): F[Unit]
   def sendHousingCredentials(universityId: UUID): F[Unit]
 }
 
@@ -47,7 +47,7 @@ object UniversityAlgebra {
           uniApplications = applications.filter(app => programs.contains(app.programId))
         } yield uniApplications
 
-      def updateApplicationStatus(applicationId: UUID, status: ApplicationStatus): F[Unit] =
+      def updateApplicationStatus(applicationId: UUID, status: String): F[Unit] =
         applicationRepository.updateStatus(applicationId, status)
 
       def sendHousingCredentials(universityId: UUID): F[Unit] =

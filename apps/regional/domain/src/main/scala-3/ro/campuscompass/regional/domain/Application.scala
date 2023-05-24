@@ -14,26 +14,9 @@ final case class Application(
   programId: UUID,
   programName: String,
   zipFile: Option[String],
-  status: ApplicationStatus,
+  status: String,
   housing: Boolean,
   sentHousingCredentials: Option[Boolean],
   timestamp: Instant,
   studentData: StudentData
 )
-
-enum ApplicationStatus:
-  case InProcess
-  case Submitted
-  case Accepted
-  case Rejected
-
-object ApplicationStatus {
-  given Encoder[ApplicationStatus] = Encoder[String].contramap(_.toString)
-  given Decoder[ApplicationStatus] = Decoder[String].emap {
-    case "InProcess" => Right(ApplicationStatus.InProcess)
-    case "Submitted" => Right(ApplicationStatus.InProcess)
-    case "Accepted"  => Right(ApplicationStatus.InProcess)
-    case "Rejected"  => Right(ApplicationStatus.InProcess)
-    case _           => Left("Could not parse the Application Status")
-  }
-}

@@ -53,11 +53,11 @@ object ApplicationAlgebra {
           GenericError(s"Documents were not loaded")
         )
         _ <- MonadThrow[F].raiseWhen(
-          app.status != ApplicationStatus.InProcess
+          app.status != "InProcess"
         )(
           GenericError(s"Application $applicationId is in an inconsistent state")
         )
-        _ <- applicationRepository.updateStatus(applicationId, ApplicationStatus.Submitted)
+        _ <- applicationRepository.updateStatus(applicationId, "Submitted")
 
         _ <- if (housing)
           applicationRepository.updateHousing(applicationId, housing)
