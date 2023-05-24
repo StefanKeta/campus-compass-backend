@@ -71,7 +71,7 @@ class StudentRoutes[F[_]: Async](authAlgebra: AuthAlgebra[F], studentAlgebra: St
 
   private val setStudentDetailsRoute = setStudentDetailsEndpoint
     .serverSecurityLogicRecoverErrors(handleAuthentication).serverLogicRecoverErrors(studentUserId =>
-      studentData => studentAlgebra.setStudentData(studentUserId, studentData.domain())
+      studentData => studentAlgebra.setStudentData(studentUserId, studentData.domain(studentUserId))
     )
 
   private val getStudentDetailsRoute = getStudentDetailsEndpoint

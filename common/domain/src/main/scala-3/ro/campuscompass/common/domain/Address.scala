@@ -1,4 +1,4 @@
-package ro.campuscompass.global.domain
+package ro.campuscompass.common.domain
 
 final case class Address(
   street: Option[String],

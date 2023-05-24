@@ -1,6 +1,6 @@
 package ro.campuscompass.global.httpserver.api.model
 
-import ro.campuscompass.global.domain.{ AppliedProgrammeGlobal, DegreeType }
+import ro.campuscompass.global.domain.AppliedProgrammeGlobal
 
 import java.util.UUID
 
@@ -8,7 +8,7 @@ final case class AppliedProgrammeGlobalDTO(
   uniUserId: UUID,
   applicationId: UUID,
   name: String,
-  degreeType: DegreeType,
+  degreeType: String,
   universityName: String
 )
 

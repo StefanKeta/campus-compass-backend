@@ -12,6 +12,7 @@ import org.http4s.client.Client
 import org.http4s.headers.Authorization
 import org.typelevel.ci.CIString
 import ro.campuscompass.common.crypto.JWT
+import ro.campuscompass.common.domain.*
 import ro.campuscompass.global.client.*
 import ro.campuscompass.global.client.api.model.request.*
 import ro.campuscompass.global.client.api.model.response.*
@@ -22,7 +23,7 @@ import sttp.tapir.*
 import java.util.UUID
 
 trait StudentRegionalClient[F[_]] {
-  def applyToProgramme(studentApplication: StudentApplication, node: Node): F[Option[UUID]]
+  def applyToProgramme(studentApplication: StudentApplication, studentData: StudentData, node: Node): F[Option[UUID]]
   def listProgrammes(): F[List[UniversityProgramme]]
   def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgramme]]
   def viewApplication(viewApplication: ViewApplicationReqDTO, node: Node): F[ViewApplicationRedirectDTO]
@@ -34,17 +35,25 @@ object StudentRegionalClient {
     regionalConfig: RegionalConfig,
     apiKeyConfig: ApiKeyConfig
   ) =
-    new StudentRegionalClient[F]:
+    new StudentRegionalClient[F] {
       implicit val key: String = apiKeyConfig.key
 
-      override def applyToProgramme(studentApplication: StudentApplication, node: Node): F[Option[UUID]] =
+      override def applyToProgramme(
+        studentApplication: StudentApplication,
+        studentData: StudentData,
+        node: Node
+      ): F[Option[UUID]] =
         expectResponse[F, Option[UUID]](
           client,
-          request[F, StudentApplication](
+          request[F, CreateApplicationDTO](
             method = Method.POST,
-            path = s"http://${node.be}/api/v1/application",
-            entity = studentApplication
-          ),
+            path   = s"http://${node.be}/api/v1/application",
+            entity = CreateApplicationDTO(
+              studentData = studentData,
+              studentId   = studentApplication.userId,
+              programId   = studentApplication.programmeId,
+            )
+          )
         )
 
       override def listProgrammes(): F[List[UniversityProgramme]] = regionalConfig.nodes.map { node =>
@@ -74,4 +83,5 @@ object StudentRegionalClient {
             )
           )
         } yield ViewApplicationRedirectDTO(jwt, node.fe)
+    }
 }

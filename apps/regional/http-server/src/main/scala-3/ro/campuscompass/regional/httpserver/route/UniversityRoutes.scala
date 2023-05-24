@@ -27,7 +27,8 @@ class UniversityRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], univers
       listUniversityProgramsRoute,
       listUniversityApplicationsRoute,
       updateApplicationStatusRoute,
-      listUniversityHousingRequestsRoute
+      listUniversityHousingRequestsRoute,
+      sendHousingCredentialsRoute
     )
 
   private val createProgramRoute = createProgram
@@ -82,7 +83,7 @@ class UniversityRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], univers
         universityAlgebra.applications(universityId)
           .map(_.filter(_.housing).map(app =>
             HousingRequestDTO(
-              name                   = app.firstName + " " + app.lastName,
+              name                   = app.studentData.firstName.getOrElse("") + "" + app.studentData.lastName.getOrElse(""),
               applicationDate        = app.timestamp,
               sentHousingCredentials = app.sentHousingCredentials
             )

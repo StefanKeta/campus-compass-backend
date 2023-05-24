@@ -1,7 +1,6 @@
 package ro.campuscompass.global.httpserver.api.model
 
-import ro.campuscompass.global.domain.{ Address, Degree, StudentData }
-
+import ro.campuscompass.common.domain.{Address, Degree, StudentData}
 import java.time.Instant
 import java.util.UUID
 
@@ -15,7 +14,8 @@ final case class StudentDataDTO(
   address: Option[Address],
   degree: Option[Degree]
 ) {
-  def domain(): StudentData = StudentData(
+  def domain(_id: UUID): StudentData = StudentData(
+    _id,
     firstName,
     lastName,
     dob,

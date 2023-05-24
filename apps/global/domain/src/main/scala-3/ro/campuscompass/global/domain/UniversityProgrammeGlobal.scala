@@ -5,6 +5,6 @@ import java.util.UUID
 final case class UniversityProgrammeGlobal(
   uniUserId: UUID,
   programmeName: String,
-  degreeType: DegreeType,
+  degreeType: String,
   universityName: String
 )

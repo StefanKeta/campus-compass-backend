@@ -3,8 +3,7 @@ package ro.campuscompass.global.persistence.rep
 import io.circe.generic.auto.*
 import mongo4cats.circe.*
 import mongo4cats.codecs.MongoCodecProvider
-import ro.campuscompass.global.domain.{ Address, Degree, StudentData }
-
+import ro.campuscompass.common.domain.{ Address, Degree, StudentData }
 import java.time.Instant
 import java.util.UUID
 
@@ -20,6 +19,7 @@ final case class StudentDataRep(
   degree: Option[Degree]
 ) {
   def domain() = StudentData(
+    _id       = this._id,
     firstName = this.firstName,
     lastName  = this.lastName,
     dob       = this.dob,

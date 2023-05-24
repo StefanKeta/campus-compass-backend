@@ -1,14 +1,15 @@
 package ro.campuscompass.regional.algebra.university
 
-import cats.effect.*
 import cats.*
+import cats.effect.*
+import cats.effect.implicits.*
 import cats.effect.std.Random
 import cats.implicits.*
-import cats.effect.implicits.*
+import ro.campuscompass.common.domain.Credentials
+import ro.campuscompass.common.domain.error.GenericError
 import ro.campuscompass.common.email.*
 import ro.campuscompass.regional.domain.*
 import ro.campuscompass.regional.persistance.*
-import ro.campuscompass.common.domain.Credentials
 
 import java.util.UUID
 
@@ -64,10 +65,11 @@ object UniversityAlgebra {
                   universityId = universityId
                 ))
                 _ <- applicationRepository.updateSentCredentials(app._id, Some(true))
+                email <- ApplicativeThrow[F].fromOption(app.studentData.email, GenericError("Email not specified"))
                 _ <- emailAlgebra.send(
                   EmailRequest(
                     EmailAddress.unsafe(emailAlgebra.config.sender),
-                    List(EmailAddress.unsafe(app.email)),
+                    List(EmailAddress.unsafe(email)),
                     Subject("Housing credentials"),
                     Content(housingTemplate(user, password, emailAlgebra.config.sender))
                   )

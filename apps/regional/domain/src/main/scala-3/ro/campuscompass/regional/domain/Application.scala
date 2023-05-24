@@ -1,5 +1,7 @@
 package ro.campuscompass.regional.domain
 
+import ro.campuscompass.common.domain.StudentData
+
 import java.time.Instant
 import java.util.UUID
 
@@ -8,16 +10,12 @@ final case class Application(
   _id: UUID,
   studentId: UUID,
   programId: UUID,
-  firstName: String,
-  lastName: String,
-  email: String,
-  previousEducation: String,
-  phone: String,
   zipFile: Option[String],
   status: ApplicationStatus,
   housing: Boolean,
   sentHousingCredentials: Option[Boolean],
-  timestamp: Instant
+  timestamp: Instant,
+  studentData: StudentData
 )
 
 enum ApplicationStatus:

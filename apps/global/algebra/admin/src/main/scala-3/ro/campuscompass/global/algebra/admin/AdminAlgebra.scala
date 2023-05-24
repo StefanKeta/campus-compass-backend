@@ -37,7 +37,7 @@ object AdminAlgebra extends Logging {
       _            <- logger.info("Getting all the universities by admin")
       universities <- universityRepository.findAll()
       l <- universities.traverse(u => universityRepository.isConfirmed(u._id).map(b => (u, b)))
-        .map(_.filter(_._2.isDefined).filter(_._2.get).map(_._1))
+        .map(_.filter(_._2.isDefined).filterNot(_._2.get).map(_._1))
       _ <- logger.info(s"Got ${universities.size} universities from database")
     } yield l
 

@@ -1,6 +1,6 @@
 package ro.campuscompass.global.httpserver.api.model
 
-import ro.campuscompass.global.domain.{ DegreeType, UniversityProgrammeGlobal }
+import ro.campuscompass.global.domain.UniversityProgrammeGlobal
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 final case class UniversityProgrammeGlobalDTO(
   uniUserId: UUID,
   programmeName: String,
-  degreeType: DegreeType,
+  degreeType: String,
   universityName: String
 )
 

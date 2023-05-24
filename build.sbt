@@ -66,7 +66,7 @@ lazy val sharedSettings = Seq(
   ThisBuild / organization := "ro.campus-compass",
   ThisBuild / scalaVersion := Dependencies.projectScalaVersion,
   scalacOptions ++= Seq(
-    "-Xmax-inlines:40"
+    "-Xmax-inlines:50"
   ),
   libraryDependencies ++= Seq(
     Dependencies.cats,

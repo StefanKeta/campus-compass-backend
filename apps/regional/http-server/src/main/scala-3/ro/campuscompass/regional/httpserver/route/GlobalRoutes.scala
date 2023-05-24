@@ -1,18 +1,22 @@
 package ro.campuscompass.regional.httpserver.route
 
 import cats.*
-import cats.implicits.*
 import cats.effect.implicits.*
+import cats.implicits.*
 import ro.campuscompass.common.domain.AuthToken
-import ro.campuscompass.common.domain.error.{ AuthError, GenericError }
+import ro.campuscompass.common.domain.error.*
 import ro.campuscompass.common.http.Routes
 import ro.campuscompass.regional.algebra.application.ApplicationAlgebra
 import ro.campuscompass.regional.algebra.authorization.AuthorizationAlgebra
 import ro.campuscompass.regional.algebra.university.UniversityAlgebra
+import ro.campuscompass.regional.domain.{ AuthError, * }
 import ro.campuscompass.regional.httpserver.api.endpoint.GlobalEndpoints
+import ro.campuscompass.regional.httpserver.api.model.*
 import sttp.tapir.AnyEndpoint
-import ro.campuscompass.regional.httpserver.api.model.{ StudentApplicationDTO, StudyProgramDTO, UpdateApplicationStatusDTO }
 import sttp.tapir.server.ServerEndpoint
+
+import java.time.Instant
+import java.util.UUID
 
 class GlobalRoutes[F[_]: MonadThrow](
   authAlgebra: AuthorizationAlgebra[F],
@@ -20,7 +24,7 @@ class GlobalRoutes[F[_]: MonadThrow](
   applicationAlgebra: ApplicationAlgebra[F],
   regionalApiKey: String
 ) extends Routes[F] {
-  import ro.campuscompass.regional.httpserver.api.endpoint.GlobalEndpoints._
+  import ro.campuscompass.regional.httpserver.api.endpoint.GlobalEndpoints.*
 
   override def endpoints: List[AnyEndpoint] = GlobalEndpoints()
 
@@ -70,7 +74,17 @@ class GlobalRoutes[F[_]: MonadThrow](
     )
     .serverLogicRecoverErrors(_ =>
       dto =>
-        applicationAlgebra.createApplication(???)
+        applicationAlgebra.createApplication(Application(
+          _id = UUID.randomUUID(),
+          studentId = dto.studentId,
+          programId = dto.programId,
+          zipFile = None,
+          status = ApplicationStatus.InProcess,
+          housing = false,
+          sentHousingCredentials = None,
+          timestamp = Instant.now(),
+          studentData = dto.studentData
+        ))
     )
 
   private val listApplicationsRoute = listApplications

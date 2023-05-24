@@ -39,7 +39,7 @@ object UniversityRepository {
       docs.flatMap(_.insertOne(UniversityRep(university)).void)
 
     override def findAll(): F[List[University]] =
-      docs.flatMap(_.find(Filter.exists("userId").all).map(_.toList.map(_.domain))
+      docs.flatMap(_.find.all).map(_.toList.map(_.domain))
 
     override def find(universityId: UUID): F[Option[University]] =
       docs.flatMap(_.find(Filter.eq("_id", s"$universityId")).first.map(_.map(_.domain)))

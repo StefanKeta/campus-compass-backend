@@ -6,24 +6,17 @@ import cats.effect.std.UUIDGen
 import cats.implicits.*
 import org.http4s.client.Client
 import org.typelevel.log4cats.Logger
+import ro.campuscompass.common.domain.StudentData
 import ro.campuscompass.common.logging.Logging
 import ro.campuscompass.global.client.api.model.request.ViewApplicationReqDTO
-import ro.campuscompass.global.domain.{
-  AppliedProgrammeGlobal,
-  Coordinates,
-  StudentApplication,
-  StudentData,
-  University,
-  UniversityProgrammeGlobal
-}
-import ro.campuscompass.global.domain.error.StudentError.AlreadyAppliedToUniversity
-import ro.campuscompass.global.persistence.{ StudentApplicationRepository, StudentDataRepository, UniversityRepository }
-import ro.campuscompass.global.client.api.model.response.{ AppliedProgramme, UniversityProgramme, ViewApplicationRedirectDTO }
+import ro.campuscompass.global.client.api.model.response.*
 import ro.campuscompass.global.client.client.StudentRegionalClient
 import ro.campuscompass.global.client.config.RegionalConfig
+import ro.campuscompass.global.domain.*
 import ro.campuscompass.global.domain.error.AdminError.UniversityNotFound
 import ro.campuscompass.global.domain.error.StudentError
 import ro.campuscompass.global.domain.error.StudentError.*
+import ro.campuscompass.global.persistence.*
 
 import java.util.UUID
 
@@ -48,8 +41,10 @@ object StudentAlgebra extends Logging {
   ) =
     new StudentAlgebra[F]:
       override def applyToProgramme(studentApplication: StudentApplication): F[Unit] = for {
-        node <- identifyNode(studentApplication.universityUserId)
-        applicationId <- client.applyToProgramme(studentApplication, node).flatMap {
+        node           <- identifyNode(studentApplication.universityUserId)
+        studentDataOpt <- studentRepository.findById(studentApplication.userId)
+        studentData    <- ApplicativeThrow[F].fromOption(studentDataOpt, StudentDataDoesNotExist("Student data missing"))
+        _ <- client.applyToProgramme(studentApplication, studentData, node).flatMap {
           case Some(id) => Applicative[F].pure(id)
           case None =>
             ApplicativeThrow[F].raiseError(
@@ -109,7 +104,7 @@ object StudentAlgebra extends Logging {
           }
         } yield redirect
 
-      override def listUniversities(): F[List[University]] = for{
+      override def listUniversities(): F[List[University]] = for {
         universities <- universityRepository.findAll()
         l <- universities.traverse(u => universityRepository.isConfirmed(u._id).map(b => (u, b)))
           .map(_.filter(_._2.isDefined).filter(_._2.get).map(_._1))

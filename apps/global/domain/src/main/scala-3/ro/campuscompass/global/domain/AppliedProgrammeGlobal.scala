@@ -6,6 +6,6 @@ final case class AppliedProgrammeGlobal(
   uniUserId: UUID,
   applicationId: UUID,
   name: String,
-  degreeType: DegreeType,
+  degreeType: String,
   universityName: String
 )
