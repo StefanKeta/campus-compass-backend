@@ -35,6 +35,8 @@ class GlobalServer[F[_]: Async](
         .withHost(host)
         .withPort(port)
         .withHttpApp(globalServerRoutes.http4sRoutes.orNotFound)
+        .withoutTLS
+        .withHttp2
         .build
       _ <- logger[Resource[F, *]].info(s"Global server started at: $host:$port")
     } yield server

@@ -30,10 +30,14 @@ class RegionalServer[F[_]: Async](
       address <- Resource.pure(address).rethrow
       (host, port) = address
       server <- EmberServerBuilder
-        .default[F]
-        .withHost(host)
-        .withPort(port)
-        .withHttpApp(regionalServerRoutes.http4sRoutes.orNotFound)
+          .default[F]
+          .withHost(host)
+          .withPort(port)
+          .withHttpApp(regionalServerRoutes.http4sRoutes.orNotFound)
+          .withoutTLS
+          .withHttp2
+          /** EndMarker */
+          .build
         .build
       _ <- logger[Resource[F, *]].info(s"Regional server started at: $host:$port")
     } yield server
