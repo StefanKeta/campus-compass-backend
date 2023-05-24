@@ -10,7 +10,7 @@ import ro.campuscompass.global.persistence.rep.StudentDataRep
 import java.util.UUID
 
 trait StudentDataRepository[F[_]] {
-  def insert(studentId:UUID,studentData: StudentData): F[Unit]
+  def insert(studentId: UUID, studentData: StudentData): F[Unit]
   def findById(studentId: UUID): F[Option[StudentData]]
 }
 
@@ -18,7 +18,10 @@ object StudentDataRepository {
   def apply[F[_]: Sync](mongoDatabase: MongoDatabase[F]) = new StudentDataRepository[F]:
     private val docs = mongoDatabase.getCollectionWithCodec[StudentDataRep]("student-data")
     override def insert(studentId: UUID, studentData: StudentData): F[Unit] =
-      docs.flatMap(_.insertOne(StudentDataRep(studentId, studentData)).void)
+      for {
+        _ <- docs.flatMap(_.findOneAndDelete(Filter.eq("_id", studentId)))
+        _ <- docs.flatMap(_.insertOne(StudentDataRep(studentId, studentData)))
+      } yield ()
 
     override def findById(studentId: UUID): F[Option[StudentData]] =
       docs.flatMap(_.find(Filter.eq("_id", s"$studentId")).first).map(_.map(_.domain()))
