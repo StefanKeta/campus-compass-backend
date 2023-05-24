@@ -39,7 +39,7 @@ object AdminAlgebra extends Logging {
       l <- universities.traverse(u => universityRepository.isConfirmed(u._id).map(b => (u, b)))
         .map(_.filter(_._2.isDefined).filter(_._2.get).map(_._1))
       _ <- logger.info(s"Got ${universities.size} universities from database")
-    } yield universities
+    } yield l
 
     override def confirmExistence(universityId: UUID): F[Unit] = for {
       _        <- logger.info(s"Confirming university with $universityId...")
