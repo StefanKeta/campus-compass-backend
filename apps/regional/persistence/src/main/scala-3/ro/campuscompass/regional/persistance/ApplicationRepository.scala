@@ -42,7 +42,7 @@ object ApplicationRepository {
 
     override def updateHousing(applicationId: UUID, housing: Boolean): F[Unit] = docs.flatMap(_.updateOne(
       Filter.eq("_id", s"$applicationId"),
-      Update.set("sentHousingCredentials", housing)
+      Update.set("housing", housing)
     ).void)
 
     override def updateSentCredentials(applicationId: UUID, sentHousingCredentials: Option[Boolean]): F[Unit] =
