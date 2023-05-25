@@ -26,6 +26,7 @@ trait ApplicationAlgebra[F[_]] {
 object ApplicationAlgebra {
   def apply[F[_]: Sync](
     minioClient: MinIO[F],
+    minioHost: String,
     applicationRepository: ApplicationRepository[F]
   ): ApplicationAlgebra[F] =
     new ApplicationAlgebra[F] {
@@ -73,15 +74,29 @@ object ApplicationAlgebra {
       def uploadZip(applicationId: UUID, zipFile: File, fileName: Option[String]): F[Unit] = for {
         _ <- minioClient.createBucketIfNotExists(s"$applicationId")
         _ <- minioClient.uploadWithOverwrite(
-          s"$applicationId",
-          fileName.getOrElse(s"$applicationId.zip"),
-          zipFile
-        )
+            s"$applicationId",
+            fileName.getOrElse(s"$applicationId.zip"),
+            zipFile
+          )
         url <- minioClient.downloadLink(
-          s"$applicationId",
-          fileName.getOrElse(s"$applicationId.zip")
-        )
-        _ <- applicationRepository.updateZipUrl(applicationId, url)
+            s"$applicationId",
+            fileName.getOrElse(s"$applicationId.zip")
+          )
+        _ <- applicationRepository.updateZipUrl(
+            applicationId,
+            url.replace(
+              "http://minio/",
+              s"http://$minioHost/"
+            )
+            .replace(
+              "https://minio/",
+              s"https://$minioHost/"
+            )
+            .replace(
+              "minio/",
+              s"$minioHost/"
+            )
+          )
       } yield ()
 
     }

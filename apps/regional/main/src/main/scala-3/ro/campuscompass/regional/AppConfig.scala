@@ -21,7 +21,8 @@ final case class AppConfig(
   mongo: MongoDBConfig,
   redis: RedisConfig,
   jwt: JwtConfig,
-  firebase: FirebaseConfig
+  firebase: FirebaseConfig,
+  minioHost: String 
 ) derives ConfigReader
 
 object AppConfig {
