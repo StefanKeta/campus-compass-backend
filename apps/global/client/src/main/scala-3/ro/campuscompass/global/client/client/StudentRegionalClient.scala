@@ -85,8 +85,9 @@ object StudentRegionalClient {
           jwt <- expectResponse[F, JWT](
             client,
             request[F, ViewApplicationReqDTO](
-              s"http://${node.be}/api/v1/authorize/student",
-              entity = viewApplication
+              path   = s"http://${node.be}/api/v1/authorize/student",
+              entity = viewApplication,
+              method = Method.POST
             )
           )
         } yield ViewApplicationRedirectDTO(jwt, node.fe)

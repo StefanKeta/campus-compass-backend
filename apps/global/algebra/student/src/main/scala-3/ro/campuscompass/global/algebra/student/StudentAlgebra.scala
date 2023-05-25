@@ -99,9 +99,7 @@ object StudentAlgebra extends Logging {
       override def viewApplication(studentId: UUID, universityId: UUID, applicationId: UUID): F[ViewApplicationRedirectDTO] =
         for {
           node <- identifyNode(universityId)
-          redirect <- client.viewApplication(ViewApplicationReqDTO(studentId, applicationId), node).recoverWith {
-            case _ => ApplicativeThrow[F].raiseError(ApplicationNotFound(s"the application with id $applicationId not found!"))
-          }
+          redirect <- client.viewApplication(ViewApplicationReqDTO(studentId, applicationId), node)
         } yield redirect
 
       override def listUniversities(): F[List[University]] = for {
