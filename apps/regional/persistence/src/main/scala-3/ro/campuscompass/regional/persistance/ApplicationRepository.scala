@@ -35,19 +35,19 @@ object ApplicationRepository {
       docs.flatMap(_.find.all).map(_.toList)
 
     override def updateStatus(applicationId: UUID, status: String): F[Unit] =
-      docs.flatMap(_.updateOne(Filter.eq("_id", applicationId), Update.set("status", status)).void)
+      docs.flatMap(_.updateOne(Filter.eq("_id", s"$applicationId"), Update.set("status", status)).void)
 
     override def updateZipUrl(applicationId: UUID, url: String): F[Unit] =
-      docs.flatMap(_.updateOne(Filter.eq("_id", applicationId), Update.set("zipFile", Some(url))).void)
+      docs.flatMap(_.updateOne(Filter.eq("_id", s"$applicationId"), Update.set("zipFile", Some(url))).void)
 
     override def updateHousing(applicationId: UUID, housing: Boolean): F[Unit] = docs.flatMap(_.updateOne(
-      Filter.eq("_id", applicationId),
+      Filter.eq("_id", s"$applicationId"),
       Update.set("sentHousingCredentials", housing)
     ).void)
 
     override def updateSentCredentials(applicationId: UUID, sentHousingCredentials: Option[Boolean]): F[Unit] =
       docs.flatMap(_.updateOne(
-        Filter.eq("_id", applicationId),
+        Filter.eq("_id", s"$applicationId"),
         Update.set("sentHousingCredentials", Some(sentHousingCredentials))
       ).void)
 
