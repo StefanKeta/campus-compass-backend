@@ -1,17 +1,20 @@
 package ro.campuscompass.regional.algebra.university
 
+import fs2.*
 import cats.*
 import cats.effect.*
 import cats.effect.implicits.*
 import cats.effect.std.Random
 import cats.implicits.*
-import ro.campuscompass.common.domain.{Credentials, StudyProgram}
+import ro.campuscompass.common.domain.{ Credentials, StudyProgram }
 import ro.campuscompass.common.domain.error.GenericError
 import ro.campuscompass.common.email.*
 import ro.campuscompass.regional.domain.*
 import ro.campuscompass.regional.persistance.*
 
 import java.util.UUID
+
+import scala.concurrent.duration.*
 
 trait UniversityAlgebra[F[_]] {
   def createProgram(program: StudyProgram): F[Unit]
@@ -55,6 +58,7 @@ object UniversityAlgebra {
           apps <- applications(universityId)
           _ <- fs2.Stream.emits(apps.filter(app => app.housing && app.sentHousingCredentials.contains(false)))
             .covary[F]
+            .debounce(3.seconds)
             .evalTap { app =>
               for {
                 user     <- List.fill(6)(Random[F].nextAlphaNumeric).sequence.map(_.mkString)
@@ -64,7 +68,7 @@ object UniversityAlgebra {
                   credentials  = Credentials(user, password),
                   universityId = universityId
                 ))
-                _ <- applicationRepository.updateSentCredentials(app._id, Some(true))
+                _     <- applicationRepository.updateSentCredentials(app._id, Some(true))
                 email <- ApplicativeThrow[F].fromOption(app.studentData.email, GenericError("Email not specified"))
                 _ <- emailAlgebra.send(
                   EmailRequest(
@@ -79,6 +83,7 @@ object UniversityAlgebra {
             }
             .compile
             .drain
+            .start
         } yield ()
     }
   }
