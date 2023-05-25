@@ -3,13 +3,13 @@ package ro.campuscompass.regional.httpserver.route
 import cats.*
 import cats.effect.implicits.*
 import cats.implicits.*
-import ro.campuscompass.common.domain.{ AuthToken, StudyProgramDTO }
+import ro.campuscompass.common.domain.{AuthToken, StudentApplicationDTO, StudyProgramDTO}
 import ro.campuscompass.common.domain.error.*
 import ro.campuscompass.common.http.Routes
 import ro.campuscompass.regional.algebra.application.ApplicationAlgebra
 import ro.campuscompass.regional.algebra.authorization.AuthorizationAlgebra
 import ro.campuscompass.regional.algebra.university.UniversityAlgebra
-import ro.campuscompass.regional.domain.{ AuthError, * }
+import ro.campuscompass.regional.domain.{AuthError, *}
 import ro.campuscompass.regional.httpserver.api.endpoint.GlobalEndpoints
 import ro.campuscompass.regional.httpserver.api.model.*
 import sttp.tapir.AnyEndpoint

@@ -64,14 +64,21 @@ object StudentRegionalClient {
       }.sequence.map(_.flatten)
 
       override def listAppliedProgrammes(studentId: UUID): F[List[AppliedProgramme]] = regionalConfig.nodes.map { node =>
-        expectResponse[F, List[AppliedProgramme]](
-          client,
-          request[F, ListAppliedProgrammesReqDTO](
-            s"http://${node.be}/api/v1/$studentId/application",
-            entity = ListAppliedProgrammesReqDTO(studentId)
+          expectResponse[F, List[StudentApplicationDTO]](
+            client,
+            request[F, ListAppliedProgrammesReqDTO](
+              s"http://${node.be}/api/v1/$studentId/application",
+              entity = ListAppliedProgrammesReqDTO(studentId)
+            )
           )
-        )
-      }.sequence.map(_.flatten)
+        }.sequence.map(_.flatten).map(_.map(dto =>
+          AppliedProgramme(
+            uniUserId     = dto.universityId,
+            applicationId = dto.applicationId,
+            name          = dto.programName,
+            degreeType    = dto.programKind
+          )
+        ))
 
       override def viewApplication(viewApplication: ViewApplicationReqDTO, node: Node): F[ViewApplicationRedirectDTO] =
         for {
