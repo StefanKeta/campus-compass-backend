@@ -17,11 +17,11 @@ object HousingCredentialsFirebaseRepository {
         "userType",
         "STUDENT",
         "universityId",
-        creds.universityId,
+        s"${creds.universityId}",
         "username",
-        creds.credentials.username,
+        s"${creds.credentials.username}",
         "password",
-        creds.credentials.password
+        s"${creds.credentials.password}"
       )).addListener(
         ()                  => (),
         (command: Runnable) => command.run()
