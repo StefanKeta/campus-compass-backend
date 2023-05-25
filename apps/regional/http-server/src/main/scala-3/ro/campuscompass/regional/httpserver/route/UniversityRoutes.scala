@@ -82,7 +82,7 @@ class UniversityRoutes[F[_]: Sync](authAlgebra: AuthorizationAlgebra[F], univers
     }.serverLogicRecoverErrors(universityId =>
       _ =>
         universityAlgebra.applications(universityId)
-          .map(_.filter(_.housing).map(app =>
+          .map(_.filter(_.housing).filter(_.status == "Accepted").map(app =>
             HousingRequestDTO(
               name                   = app.studentData.firstName.getOrElse("") + "" + app.studentData.lastName.getOrElse(""),
               applicationDate        = app.timestamp,
